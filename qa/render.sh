@@ -1,18 +1,27 @@
 #!/bin/bash
 # 使い方: qa/render.sh deck.pptx [出力フォルダ]
-# PPTX を PDF に変換し、ページごとの PNG と一覧画像を作る。
+# PPTX を PDF に変換し、ページごとの PNG と一覧画像（<名前>-sheet.png）を作る。
 # LibreOffice があればそれを使い、なければ Mac の PowerPoint を AppleScript で使う。
+#
+# PowerPoint はサンドボックスのため、/tmp など読めない場所のファイルを開けないことがある。
+# そのため作業用のコピーは PowerPoint が読み書きできる場所（既定: ~/Library/Caches/claude_pptx_making）で行う。
+# 場所は環境変数 PPTX_RENDER_WORK で変えられる。
 set -euo pipefail
 SRC="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 OUT="${2:-$(dirname "$SRC")/render}"
 mkdir -p "$OUT"
+OUT="$(cd "$OUT" && pwd)"
 NAME="$(basename "$SRC" .pptx)"
-WORK="$OUT/.work-$$"; mkdir -p "$WORK"
+BASE="${PPTX_RENDER_WORK:-$HOME/Library/Caches/claude_pptx_making}"
+mkdir -p "$BASE"
+WORK="$(mktemp -d "$BASE/render.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
 cp "$SRC" "$WORK/$NAME.pptx"
+
 if command -v soffice >/dev/null 2>&1; then
   soffice --headless --convert-to pdf --outdir "$WORK" "$WORK/$NAME.pptx" >/dev/null
 elif [ -d "/Applications/Microsoft PowerPoint.app" ]; then
-  osascript <<OSA
+  osascript <<OSA || true
 with timeout of 280 seconds
 tell application "Microsoft PowerPoint"
   open POSIX file "$WORK/$NAME.pptx"
@@ -26,7 +35,16 @@ OSA
 else
   echo "LibreOffice も PowerPoint も見つかりません" >&2; exit 1
 fi
+
+if [ ! -f "$WORK/$NAME.pdf" ]; then
+  cat >&2 <<MSG
+PDF を作れませんでした。次を確認してください:
+  - PowerPoint に「修復しますか」や開始画面（テンプレートの一覧）が出ていないか（出ていれば閉じて再実行）
+  - 作業場所 $BASE を PowerPoint が読み書きできるか（PPTX_RENDER_WORK で変更可）
+  - node src/build.js が警告なしで終わっているか（壊れた図形があると PowerPoint が開けない）
+MSG
+  exit 1
+fi
 cp "$WORK/$NAME.pdf" "$OUT/$NAME.pdf"
 PY="${PYTHON:-python3}"
 "$PY" "$(dirname "$0")/contact_sheet.py" "$OUT/$NAME.pdf" "$OUT"
-rm -rf "$WORK"

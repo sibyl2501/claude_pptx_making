@@ -13,7 +13,9 @@ JSON（1ページ＝1オブジェクト）を書き、キットで pptx を生�
 bash "<このスキルのフォルダ>/scripts/setup.sh"
 ```
 
-キットの場所（`KIT`、既定は `~/claude_pptx_making`）を表示する。無ければ取得し、あれば最新にし、依存（Node と描画確認用の Python）を整える。以降のコマンドの `$KIT` はこの場所。
+キットの場所（`KIT`、既定は `~/claude_pptx_making`）を表示する。無ければ取得し、あれば GitHub の最新に更新し（手元に変更があれば更新しない）、依存（Node と描画確認用の Python）が無ければ入れる。キットを更新したくないときは `--no-update` を付ける。以降のコマンドの `$KIT` はこの場所。
+
+キットのソース（`src/`）を読む必要は基本的にない。項目は次の `example.sh` と下の「調整に使う項目」で足りる。
 
 ## 1. 目的と読み手を決める
 
@@ -52,13 +54,30 @@ bash "<このスキルのフォルダ>/scripts/setup.sh"
 | 学習・解説 | `concept_map`（対応表）、`chart_cards`、`derivation`（式・図・表を自由に組む）、`cheat_sheet`（早見表）、`exercises`（演習、解答はノートへ自動） |
 | 用語集・参考文献 | `references` |
 
-同じパターンを3枚以上続けない。項目の書き方は、使うパターンの実例を1枚だけ取り出して真似る（全部読むより速い）：
+同じパターンを3枚以上続けない。使うパターンごとに、**使える項目の一覧と実例1枚**を表示して真似る（見本全体やソースを読むより速い）：
 
 ```bash
 bash "<このスキルのフォルダ>/scripts/example.sh" logic_tree
 ```
 
-正確な項目定義は `$KIT/schema/deck.schema.json`。未知の項目名はエラーになるので、推測で項目を作らない。
+未知の項目名はエラーになるので、推測で項目を作らない（正確な定義は `$KIT/schema/deck.schema.json`）。
+
+### 調整に使う項目（はみ出し・空きを直すときに効く）
+
+| 項目 | パターン | 効き方 |
+|---|---|---|
+| `chartWidth`（0〜1） | `chart_insight` `waterfall` `kpi_dashboard` `chart_cards` | グラフの幅の割合。考察カードがあふれるなら小さく（例 0.55） |
+| `widths`（比率の配列） | 表を持つパターン、`comparison` | 列幅の比。長い列を広げる |
+| `grid`（"3x2" など） | `card_grid` `chart_cards` `cheat_sheet` | 列×行。カードが窮屈なら列を減らす |
+| `panel.width`（インチ） | `card_grid` | 右パネルの幅 |
+| `flowHeight` `kpiHeight` `goalsHeight` `insightsHeight`（インチ） | `concept_map` `kpi_dashboard` `roadmap` `two_charts` | 下段・上段の帯の高さ |
+| `rowsPerPage` | `data_table` | 1ページの行数を固定 |
+| `numbered: false` | `card_grid` `pillars` `chart_cards` | カードの番号を消す |
+| `emphasize` / `highlight` / `recommend` / `current` | 各パターン | 1か所をアクセント色で強調 |
+
+### `derivation` のブロック（列 `columns[{width, blocks}]` に上から積む）
+
+`card {title, body, stat}`／`panel {title, body}`（白地＋枠線）／`table {headers, rows, widths, align}`／`chart {chart}`／`kpi {label, value, unit, delta, good, note}`／`diagram {layers: [3,4,2], labels, edgeLabels}`（層の図）／`image {path, alt}`／`message {text}`（結論帯）。どれにも `height`（固定の高さ、インチ）と `grow`（グラフ・図・画像が余白を分け合う重み）を付けられる。文字のブロックは列の高さに合わせて伸びる。
 
 ## 4. JSON を書く
 
@@ -101,10 +120,11 @@ node "$KIT/src/build.js" deck.json deck.pptx
 PYTHON="$KIT/.venv/bin/python" "$KIT/qa/render.sh" deck.pptx render/
 ```
 
-`render/deck-sheet.png`（一覧）をまず見て、気になるページだけ `render/deck-NN.png` を開く。見る点：はみ出し・文字の重なり・空きすぎ・`matrix_2x2` の点と文字の重なり・グラフの読みやすさ。直したら 5 からやり直す。
+`render/deck-sheet.png`（一覧）をまず見て、気になるページだけ `render/deck-NN.png` を開く。**検査で警告がなくても必ず画像で見る**（検査は見積もりで、狭い枠の折り返しや表のセル内の改行までは完全には当たらない）。見る点：はみ出し・文字の重なり・1〜2文字だけの行・数値の途中での改行・空きすぎ・`matrix_2x2` の点と文字の重なり・グラフの読みやすさ。直したら 5 からやり直す。
 
-- 描画確認は Mac の PowerPoint を AppleScript で使う（LibreOffice があればそちら）。PDF ができないときは、PowerPoint に「修復しますか」の画面や開始画面が出ていないかを確認する。`build.js` は壊れた図形を検出して止めるので、通常は出ない。
-- 出力先 `render/` は PowerPoint が書き込める場所にする（ユーザーのフォルダかスクラッチ領域）。
+- 描画確認は Mac の PowerPoint を AppleScript で使う（LibreOffice があればそちら）。作業用のコピーは PowerPoint が読める `~/Library/Caches/claude_pptx_making` で行うので、出力先 `render/` はどこでもよい。
+- PDF ができないときは、表示される確認事項に従う（PowerPoint の「修復しますか」の画面や開始画面を閉じて再実行するなど）。`build.js` は壊れた図形を検出して止めるので、修復の画面は通常は出ない。
+- 汎用 pptx スキルの `validate.py` は Python 3.10 以上と lxml が必要。動かない環境では省略してよい（キット側で壊れた図形と入力の検査をしている）。
 
 ## 7. 渡す
 

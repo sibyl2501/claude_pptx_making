@@ -248,6 +248,7 @@ function waterfallSpec(ctx, spec) {
 function chart(ctx, slide, rec, box, spec) {
   const { pres, theme, fonts } = ctx;
   if (spec.type === "waterfall") spec = waterfallSpec(ctx, spec);
+  if (spec.title && !fitsOneLine(spec.title, box.w * 0.9, 11)) rec.warn.push(`グラフの題名「${spec.title.slice(0, 20)}…」が1行に収まりません。短くするか、単位は unit に移してください`);
   const t = spec.type || "bar";
   const data = spec.series.map((s) => ({ name: s.name, labels: spec.categories, values: s.values }));
   const single = data.length === 1;

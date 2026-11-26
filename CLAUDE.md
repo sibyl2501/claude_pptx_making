@@ -24,4 +24,4 @@
 - 新しいパターンは `src/patterns/` にファイルを作り、`src/patterns/index.js` の一覧、`src/schema.js` の `P`、`examples/catalog.json`、README の表に加える。
 - 変更後は `npm test`（全見本を全設定で生成して検査）を通し、`npm run examples` と `qa/render.sh` で目で確認してから、`docs/images/` の一覧画像と `dist/` を更新する。
 - 図形の大きさが負になると PowerPoint が「修復」を求める。`build.js` が検出して止めるので、出たら該当の枠の高さ計算を直す。
-- 書き出した pptx は Office の検査（pptx スキルの `validate.py`）も通す。
+- 書き出した pptx は、動く環境なら Office の検査（pptx スキルの `validate.py`、Python 3.10 以上と lxml が必要）も通す。

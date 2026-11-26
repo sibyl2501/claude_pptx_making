@@ -24,24 +24,57 @@ function textEm(text) {
   return em * METRICS.safety;
 }
 
+// 行頭に来られない文字（禁則）。前の文字と一緒に折り返す
+const NO_LINE_START = "、。，．,.・：；:;？！?!）」』】〕］｝〉》)]}ー…‥ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ%％";
+
+// 折り返しの単位に分ける：英単語・数値（10,000 や 3.5% など）はひとかたまり、和文は1文字ずつ
+function tokenize(text) {
+  const raw = plain(text).match(/[A-Za-z0-9][A-Za-z0-9.,%'’+\-]*|\s+|./gu) || [];
+  const out = [];
+  for (const t of raw) {
+    if (out.length && t.length === 1 && NO_LINE_START.includes(t)) out[out.length - 1] += t;
+    else out.push(t);
+  }
+  return out;
+}
+
+// 1段落を幅 cap（em）で折り返したときの行数と、最終行の文字数
+function wrap(tokens, capEm, scale) {
+  let lines = 1, cur = 0, lastChars = 0;
+  for (const t of tokens) {
+    let w = 0;
+    for (const ch of t) w += charEm(ch);
+    w *= scale;
+    if (/^\s+$/.test(t)) { if (cur > 0 && cur + w <= capEm) { cur += w; } continue; }
+    if (cur + w <= capEm) { cur += w; lastChars += [...t].length; continue; }
+    if (w > capEm) {
+      // 1行に入らない長い語は文字単位で折る
+      for (const ch of t) {
+        const cw = charEm(ch) * scale;
+        if (cur + cw > capEm && cur > 0) { lines++; cur = 0; lastChars = 0; }
+        cur += cw; lastChars++;
+      }
+      continue;
+    }
+    lines++; cur = w; lastChars = [...t].length;
+  }
+  return { lines, lastChars };
+}
+
 // paragraphs: markup.toParagraphs の結果。w は文字の入る幅（インチ）。
-// 戻り値: 必要な高さ（インチ）と行数
+// 戻り値: 必要な高さ（インチ）、行数、最終行が1〜2文字になる段落
 function measure(paragraphs, w, fontSize, paraAfterPt = 3) {
   const sizeIn = fontSize / 72;
   let lines = 0;
   const orphans = [];
   for (const p of paragraphs) {
     const indent = p.bullet ? sizeIn * (0.95 + p.level * 1.2) : 0;
-    const avail = Math.max(0.3, w - indent);
-    const em = textEm(p.text);
-    lines += Math.max(1, Math.ceil((em * sizeIn) / avail - 1e-9));
-    // 最終行が1〜2文字だけになる段落（余裕を含まない字幅で判定）
-    const trueIn = (em / METRICS.safety) * sizeIn;
-    const n = Math.ceil(trueIn / avail - 1e-9);
-    if (n > 1) {
-      const remChars = (trueIn - (n - 1) * avail) / sizeIn;
-      if (remChars > 0 && remChars <= 2.05) orphans.push(plain(p.text));
-    }
+    const capEm = Math.max(0.3, w - indent) / sizeIn;
+    const toks = tokenize(p.text);
+    // 高さは余裕を含めた字幅で、最終行の判定は実際に近い字幅で見積もる
+    lines += wrap(toks, capEm, METRICS.safety).lines;
+    const real = wrap(toks, capEm, 1);
+    if (real.lines > 1 && real.lastChars <= 2) orphans.push(plain(p.text));
   }
   const h = lines * sizeIn * METRICS.lineHeight + paragraphs.length * (paraAfterPt / 72);
   return { height: h, lines, orphans };
