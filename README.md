@@ -158,9 +158,27 @@ tests/            回帰テスト（npm test）
 examples/         見本の入力 JSON（catalog = 全パターン）
 dist/             見本の pptx
 docs/             設計書と見本画像
+skill/pptx-making Claude Code の Skill（SKILL.md と setup.sh・example.sh）
 ```
 
-## Claude に頼むとき
+## Claude Code の Skill として使う（おすすめ）
+
+Skill として登録すると、どのフォルダ・どの会話でも「〇〇の資料を pptx で作って」と頼むだけで、Claude がこのキットを使って作ります（汎用の pptx 作成手順でゼロから組むより速く、品質も安定します）。
+
+```bash
+git clone https://github.com/sibyl2501/claude_pptx_making.git ~/claude_pptx_making
+mkdir -p ~/.claude/skills
+ln -s ~/claude_pptx_making/skill/pptx-making ~/.claude/skills/pptx-making
+bash ~/.claude/skills/pptx-making/scripts/setup.sh
+```
+
+- Skill の本体は [skill/pptx-making/SKILL.md](skill/pptx-making/SKILL.md)。目的の確認 → ストーリー → パターン選択 → JSON → 検査 → 画像で確認、の手順を Claude に渡します
+- `setup.sh` はキットの取得・更新、Node の依存、描画確認用の Python 環境（`.venv`）をまとめて整えます。会話のたびに Claude が実行するので、キットは自動で最新になります（手元に変更があるときは更新しません）
+- `scripts/example.sh <pattern>` は、全パターン見本から指定パターンの実例を1枚だけ取り出します（Claude が読む量を減らすため）
+- キットの場所は環境変数 `PPTX_KIT_DIR` で変えられます（既定は `~/claude_pptx_making`）
+- 登録後に開いた新しい会話から有効になります
+
+## Claude に頼むとき（Skill を使わない場合）
 
 このリポジトリの URL と、資料の目的・読み手・元の資料を渡して、次のように依頼します。
 

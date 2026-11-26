@@ -3,3 +3,4 @@ render/
 *.pdf
 .DS_Store
 ~$*
+.venv/
