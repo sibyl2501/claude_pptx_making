@@ -29,14 +29,22 @@ function textEm(text) {
 function measure(paragraphs, w, fontSize, paraAfterPt = 3) {
   const sizeIn = fontSize / 72;
   let lines = 0;
+  const orphans = [];
   for (const p of paragraphs) {
     const indent = p.bullet ? sizeIn * (0.95 + p.level * 1.2) : 0;
     const avail = Math.max(0.3, w - indent);
     const em = textEm(p.text);
     lines += Math.max(1, Math.ceil((em * sizeIn) / avail - 1e-9));
+    // 最終行が1〜2文字だけになる段落（余裕を含まない字幅で判定）
+    const trueIn = (em / METRICS.safety) * sizeIn;
+    const n = Math.ceil(trueIn / avail - 1e-9);
+    if (n > 1) {
+      const remChars = (trueIn - (n - 1) * avail) / sizeIn;
+      if (remChars > 0 && remChars <= 2.05) orphans.push(plain(p.text));
+    }
   }
   const h = lines * sizeIn * METRICS.lineHeight + paragraphs.length * (paraAfterPt / 72);
-  return { height: h, lines };
+  return { height: h, lines, orphans };
 }
 
 // [max, min] の範囲で、高さ h に収まる最大の文字サイズ（0.5pt 刻み）

@@ -12,13 +12,31 @@ const PARA_AFTER = 3; // 段落の後ろの間隔（pt）
 
 // ---------------------------------------------------------------- 計画と一括描画
 // plan = { areas: [{w, h, paras}], draw(size) }
-function renderGroup(ctx, rec, plans, range) {
+// opts.boost = false で「空きが多いときに大きくする」処理を止める（細い列の早見表など）
+function renderGroup(ctx, rec, plans, range, opts = {}) {
   const [max, min] = range || ctx.sizes.body;
-  let size = max;
-  for (const p of plans) for (const a of p.areas) {
-    if (!a.paras.length) continue;
-    size = Math.min(size, fitSize(a.paras, a.w, a.h, [max, min], PARA_AFTER).size);
+  const pick = (hi) => {
+    let s = hi;
+    for (const p of plans) for (const a of p.areas) {
+      if (!a.paras.length) continue;
+      s = Math.min(s, fitSize(a.paras, a.w, a.h, [hi, min], PARA_AFTER).size);
+    }
+    return s;
+  };
+  let size = pick(max);
+  // 最大サイズでもすべての枠が半分ほどしか埋まらないときは、2pt まで大きくして空きを減らす
+  const allSparse = (s) => plans.every((p) => p.areas.every((a) => !a.paras.length || measure(a.paras, a.w, s, PARA_AFTER).height < a.h * 0.55));
+  const cap = ctx.sizes.body[0] + 2;
+  if (opts.boost !== false && size === max && max < cap && allSparse(max)) size = pick(cap);
+  // 最終行が1〜2文字になる段落が減るなら、0.5〜1pt 小さくする
+  const orphanCount = (s) => plans.reduce((n, p) => n + p.areas.reduce((m, a) => m + (a.paras.length ? measure(a.paras, a.w, s, PARA_AFTER).orphans.length : 0), 0), 0);
+  let best = size, bestN = orphanCount(size);
+  for (const s of [size - 0.5, size - 1]) {
+    if (s < min || !bestN) break;
+    const n = orphanCount(s);
+    if (n < bestN) { best = s; bestN = n; }
   }
+  size = best;
   for (const p of plans) {
     p.draw(size);
     for (const a of p.areas) {
@@ -26,6 +44,7 @@ function renderGroup(ctx, rec, plans, range) {
       const m = measure(a.paras, a.w, size, PARA_AFTER);
       rec.areas.push({ area: a.w * a.h, fill: m.height / a.h, label: a.label });
       if (m.height > a.h * 1.02) rec.warn.push(`「${a.label}」が枠に収まりません（必要 ${m.height.toFixed(2)}in / 枠 ${a.h.toFixed(2)}in）。文を短くするか分割してください`);
+      for (const o of m.orphans) rec.warn.push(`「${a.label}」の「${o.slice(0, 18)}…」は最終行が1〜2文字になる可能性があります。言い回しを少し変えてください`);
     }
   }
   rec.sizes.add(size);
@@ -38,7 +57,8 @@ function recordSolid(rec, box, label) {
 }
 
 function textBox(ctx, slide, box, runs, opt = {}) {
-  slide.addText(runs, { x: box.x, y: box.y, w: box.w, h: box.h, margin: 0, valign: opt.valign || "top", align: opt.align || "left", isTextBox: true, objectName: ctx.nm(opt.name || "text"), fit: "none" });
+  // 負の大きさは PowerPoint で「修復」が必要なファイルになるため、最小値で止める
+  slide.addText(runs, { x: box.x, y: box.y, w: Math.max(0.05, box.w), h: Math.max(0.05, box.h), margin: 0, valign: opt.valign || "top", align: opt.align || "left", isTextBox: true, objectName: ctx.nm(opt.name || "text"), fit: "none" });
 }
 
 function badge(ctx, slide, x, y, num, d = 0.3) {
@@ -48,7 +68,8 @@ function badge(ctx, slide, x, y, num, d = 0.3) {
 }
 
 // ---------------------------------------------------------------- カード
-// spec: { title, body, num?, stat?: {value, label} }  opt: { fill, label }
+// spec: { title, body, num?, stat?: {value, label} }
+// opt: { fill, label, line（枠線の色）, header: {fill, color}（見出しを色帯にする） }
 function planCard(ctx, slide, box, spec, opt = {}) {
   const { theme, sizes } = ctx;
   const hasNum = spec.num !== undefined && spec.num !== null;
@@ -56,16 +77,22 @@ function planCard(ctx, slide, box, spec, opt = {}) {
   const tw = box.x + box.w - tx - PAD;
   const titleLines = !spec.title ? 0 : fitsOneLine(spec.title, tw, sizes.cardTitle) ? 1 : 2;
   const titleH = titleLines ? (titleLines * sizes.cardTitle * METRICS.lineHeight) / 72 + 0.06 : 0;
-  let y = box.y + 0.11 + Math.max(titleH, hasNum ? 0.32 : 0) + 0.05;
+  const headH = opt.header && spec.title ? Math.max(titleH, hasNum ? 0.32 : 0) + 0.2 : 0;
+  let y = box.y + 0.11 + Math.max(titleH, hasNum ? 0.32 : 0) + 0.05 + (headH ? 0.08 : 0);
   let statH = 0;
   if (spec.stat) statH = (sizes.kpiValue * 0.95 * 1.25) / 72 + 0.05;
   const area = { x: box.x + PAD, y: y + statH, w: box.w - 2 * PAD, h: box.y + box.h - (y + statH) - 0.1, paras: toParagraphs(spec.body), label: spec.title || opt.label || "カード" };
   return {
     areas: [area],
     draw(size) {
-      slide.addShape(ctx.pres.shapes.ROUNDED_RECTANGLE, { x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.06, fill: { color: opt.fill || theme.primaryTint }, line: { type: "none" }, objectName: ctx.nm("card") });
+      slide.addShape(ctx.pres.shapes.ROUNDED_RECTANGLE, { x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.06, fill: { color: opt.fill || theme.primaryTint }, line: opt.line ? { color: opt.line, width: 0.75 } : { type: "none" }, objectName: ctx.nm("card") });
+      if (headH) {
+        // 上の角だけ丸い色帯（丸角の帯の下半分を四角で覆う）
+        slide.addShape(ctx.pres.shapes.ROUNDED_RECTANGLE, { x: box.x, y: box.y, w: box.w, h: headH, rectRadius: 0.06, fill: { color: opt.header.fill }, line: { type: "none" }, objectName: ctx.nm("card-head") });
+        slide.addShape(ctx.pres.shapes.RECTANGLE, { x: box.x, y: box.y + headH / 2, w: box.w, h: headH / 2, fill: { color: opt.header.fill }, line: { type: "none" }, objectName: ctx.nm("card-head-base") });
+      }
       if (hasNum) badge(ctx, slide, box.x + 0.12, box.y + 0.11, spec.num);
-      if (spec.title) textBox(ctx, slide, { x: tx, y: box.y + 0.1, w: tw, h: Math.max(titleH, 0.32) }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: theme.primaryDark }), { valign: "middle", name: "card-title" });
+      if (spec.title) textBox(ctx, slide, { x: tx, y: box.y + 0.1, w: tw, h: Math.max(titleH, 0.32) }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: headH ? opt.header.color : theme.primaryDark }), { valign: "middle", name: "card-title" });
       if (spec.stat) {
         const s = sizes.kpiValue * 0.95;
         textBox(ctx, slide, { x: area.x, y, w: area.w, h: statH }, [
@@ -153,7 +180,10 @@ function table(ctx, slide, rec, box, spec, opt = {}) {
     }
     return runs;
   };
-  const tagColor = (v) => spec.tagColors && spec.tagColors[plain(v)] ? theme[spec.tagColors[plain(v)]] || spec.tagColors[plain(v)] : null;
+  const tagColor = (v) => {
+    const t = spec.tagColors && typeof v !== "object" && spec.tagColors[plain(v)];
+    return t ? theme[t] || ctx.colors[t] || t : null;
+  };
   const rows = rowsAll.map((r, i) => r.map((v, j) => {
     const isHead = i === 0;
     const hl = spec.highlight === j;
@@ -180,8 +210,44 @@ function table(ctx, slide, rec, box, spec, opt = {}) {
 // ---------------------------------------------------------------- グラフ（PowerPoint のネイティブグラフ）
 // spec: { type: bar|hbar|stacked|line|area|pie|doughnut, title, categories: [], series: [{name, values}],
 //         unit?, highlight?: 系列が1つのときに強調する項目の番号, min?, max?, valueLabels?: true, format?: "0.0" }
+// 滝グラフ（増減の分解）: { type: "waterfall", start: {label, value}, steps: [{label, value}], endLabel }
+// 透明な土台の系列を持つ積み上げ棒で作る。途中の累計が負にならない前提。
+function waterfallSpec(ctx, spec) {
+  const cats = [spec.start.label], base = [0], inc = [0], dec = [0], total = [spec.start.value];
+  let run = spec.start.value;
+  for (const s of spec.steps) {
+    cats.push(s.label);
+    if (s.value >= 0) { base.push(run); inc.push(s.value); dec.push(0); }
+    else { base.push(run + s.value); inc.push(0); dec.push(-s.value); }
+    total.push(0);
+    run += s.value;
+  }
+  cats.push(spec.endLabel || "合計"); base.push(0); inc.push(0); dec.push(0); total.push(run);
+  const round = (a) => a.map((v) => Math.round(v * 1000) / 1000);
+  // 費用・損失のように「増えると悪い」ときは invert: true で色を入れ替える
+  const t = ctx.theme;
+  const [up, down] = spec.invert ? [t.negative, t.positive] : [t.positive, t.negative];
+  // 棒が細すぎて数値が読めない項目はラベルを出さない（最大値の 6% 未満）
+  const peak = Math.max(spec.start.value, run, ...base.map((b, i) => b + inc[i] + dec[i]));
+  return {
+    ...spec,
+    type: "stacked",
+    categories: cats,
+    series: [
+      { name: "基準", values: round(base) },
+      { name: spec.increaseLabel || "増加", values: round(inc) },
+      { name: spec.decreaseLabel || "減少", values: round(dec) },
+      { name: spec.totalLabel || "合計", values: round(total) },
+    ],
+    _colors: [t.white, up, down, t.primary],
+    _waterfall: true,
+    _labelMin: Math.round(peak * 0.06 * 1000) / 1000,
+  };
+}
+
 function chart(ctx, slide, rec, box, spec) {
   const { pres, theme, fonts } = ctx;
+  if (spec.type === "waterfall") spec = waterfallSpec(ctx, spec);
   const t = spec.type || "bar";
   const data = spec.series.map((s) => ({ name: s.name, labels: spec.categories, values: s.values }));
   const single = data.length === 1;
@@ -226,8 +292,60 @@ function chart(ctx, slide, rec, box, spec) {
   } else {
     throw new Error(`グラフの type "${t}" は未対応です（bar, hbar, stacked, hstacked, line, area, pie, doughnut）`);
   }
+  if (spec._waterfall) {
+    // 土台は白（背景と同化）、目盛線なし、0 のラベルは表示しない
+    base.chartColors = spec._colors;
+    base.valGridLine = { style: "none" };
+    base.showLegend = false;
+    base.showValue = true;
+    base.dataLabelPosition = "ctr";
+    base.dataLabelColor = "FFFFFF";
+    base.dataLabelFormatCode = `[<${spec._labelMin}]"";${spec.format || "#,##0"}`;
+    base.barGapWidthPct = 40;
+  }
   slide.addChart(type, data, base);
   recordSolid(rec, box, "グラフ");
+}
+
+// ---------------------------------------------------------------- 一覧の行（目次・演習・次の行動など）
+// spec: { label（左の大きな番号）, title, body, meta（右端の補足） }  opt: { fill, labelW, line }
+function planRow(ctx, slide, box, spec, opt = {}) {
+  const { theme, sizes, fonts } = ctx;
+  const labelW = spec.label !== undefined ? opt.labelW || 0.85 : 0;
+  const metaW = spec.meta ? opt.metaW || 1.1 : 0;
+  const x = box.x + (labelW || PAD);
+  const w = box.w - (labelW || PAD) - metaW - PAD;
+  const hasBody = spec.body && [].concat(spec.body).length;
+  const titleH = spec.title ? (sizes.cardTitle * METRICS.lineHeight) / 72 + (hasBody ? 0.06 : 0) : 0;
+  const area = { x, y: box.y + 0.08 + titleH, w, h: box.h - 0.16 - titleH, paras: hasBody ? toParagraphs(spec.body) : [], label: spec.title || String(spec.label || "行") };
+  return {
+    areas: [area],
+    draw(size) {
+      slide.addShape(ctx.pres.shapes.ROUNDED_RECTANGLE, { x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.06, fill: { color: opt.fill || theme.primaryTint }, line: opt.line ? { color: opt.line, width: 0.75 } : { type: "none" }, objectName: ctx.nm("row") });
+      if (labelW) {
+        const ls = Math.min(opt.labelSize || 22, Math.max(12, box.h * 72 * 0.42));
+        slide.addText(String(spec.label), { x: box.x, y: box.y, w: labelW, h: box.h, fontFace: fonts.jp, fontSize: ls, bold: true, color: opt.labelColor || theme.primary, align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: ctx.nm("row-label") });
+      }
+      if (spec.title) {
+        const ty = hasBody ? box.y + 0.08 : box.y;
+        const th = hasBody ? titleH : box.h;
+        textBox(ctx, slide, { x, y: ty, w, h: th }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: theme.primaryDark }), { valign: hasBody ? "top" : "middle", name: "row-title" });
+      }
+      if (hasBody) textBox(ctx, slide, area, buildRuns(area.paras, ctx, { fontSize: size, color: theme.ink, paraAfter: PARA_AFTER }), { name: "row-body", valign: spec.title ? "top" : "middle" });
+      if (metaW) slide.addText(runsOf(spec.meta, ctx, { fontSize: 11, bold: true, color: theme.muted }), { x: box.x + box.w - metaW - PAD, y: box.y, w: metaW, h: box.h, align: "right", valign: "middle", margin: 0, isTextBox: true, objectName: ctx.nm("row-meta") });
+    },
+  };
+}
+
+// ---------------------------------------------------------------- 線・矢印
+function hline(ctx, slide, x1, x2, y, color, width = 1.25, arrow = false) {
+  slide.addShape(ctx.pres.shapes.LINE, { x: Math.min(x1, x2), y, w: Math.abs(x2 - x1), h: 0, flipH: x2 < x1, line: { color, width, endArrowType: arrow ? "triangle" : undefined }, objectName: ctx.nm("hline") });
+}
+function vline(ctx, slide, x, y1, y2, color, width = 1.25, arrow = false) {
+  slide.addShape(ctx.pres.shapes.LINE, { x, y: Math.min(y1, y2), w: 0, h: Math.abs(y2 - y1), flipV: y2 < y1, line: { color, width, endArrowType: arrow ? "triangle" : undefined }, objectName: ctx.nm("vline") });
+}
+function arrowRight(ctx, slide, cx, cy, size, color) {
+  slide.addShape(ctx.pres.shapes.ISOSCELES_TRIANGLE, { x: cx - size / 2, y: cy - size / 2, w: size, h: size, rotate: 90, fill: { color }, line: { type: "none" }, objectName: ctx.nm("arrow") });
 }
 
 // ---------------------------------------------------------------- KPI タイル
@@ -252,7 +370,9 @@ function kpiTile(ctx, slide, rec, box, spec) {
     slide.addText(spec.delta, { x: box.x + PAD, y, w: iw, h: 0.26, fontFace: fonts.jp, fontSize: 11, bold: true, color: good ? theme.positive : theme.negative, margin: 0, valign: "middle", isTextBox: true, objectName: ctx.nm("kpi-delta") });
     y += 0.28;
   }
-  if (spec.note) {
+  if (spec.note && box.y + box.h - y - 0.08 < 0.18) {
+    rec.warn.push(`KPI「${spec.label}」の注記を入れる高さがありません。タイルを高くするか注記を外してください`);
+  } else if (spec.note) {
     const area = { x: box.x + PAD, y, w: iw, h: box.y + box.h - y - 0.08 };
     const paras = toParagraphs(spec.note);
     const fit = fitSize(paras, area.w, area.h, [10.5, 9], 0);
@@ -367,4 +487,4 @@ function image(ctx, slide, rec, box, spec, baseDir) {
   recordSolid(rec, box, "画像");
 }
 
-module.exports = { PAD, GAP, renderGroup, recordSolid, textBox, badge, planCard, planPanel, keyMessage, table, chart, kpiTile, planStepFlow, gantt, layerDiagram, image };
+module.exports = { PAD, GAP, renderGroup, recordSolid, textBox, badge, planCard, planPanel, planRow, keyMessage, table, chart, kpiTile, planStepFlow, gantt, layerDiagram, image, hline, vline, arrowRight };

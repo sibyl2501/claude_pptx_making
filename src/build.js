@@ -11,6 +11,7 @@ const { createDeck } = require("./deck");
 const { PATTERNS } = require("./patterns");
 const { applyThemeXml } = require("./theme-xml");
 const { THEMES } = require("./themes");
+const { validateDeck } = require("./schema");
 
 const LOW_FILL = 0.55; // ページの文字領域の充填率がこれ未満なら「空きが多い」と警告
 
@@ -26,15 +27,12 @@ function parseArgs(argv) {
   return opts;
 }
 
+// 入力の検査：JSON Schema（src/schema.js）＋空文字の必須項目
 function validate(spec) {
-  const errs = [];
-  if (!spec.deck) errs.push("最上位に deck がありません");
-  if (!Array.isArray(spec.slides) || !spec.slides.length) errs.push("slides が空です");
-  (spec.slides || []).forEach((s, i) => {
-    const where = `slides[${i}]${s.title ? `「${s.title}」` : ""}`;
-    const p = PATTERNS[s.pattern];
-    if (!p) { errs.push(`${where}: pattern "${s.pattern}" はありません（--catalog で一覧）`); return; }
-    for (const k of p.required) if (s[k] === undefined || s[k] === null || s[k] === "") errs.push(`${where}: ${k} が必要です`);
+  const errs = validateDeck(spec);
+  if (errs.length) return errs;
+  spec.slides.forEach((s, i) => {
+    for (const k of PATTERNS[s.pattern].required) if (s[k] === "") errs.push(`slides[${i}]: ${k} が空です`);
   });
   return errs;
 }
@@ -54,6 +52,18 @@ function summarize(ctx) {
     for (const w of r.warn) lines.push(`      ⚠ ${w}`);
   }
   return { text: lines.join("\n"), warnCount };
+}
+
+// 負の幅・高さの図形があると PowerPoint が「修復」を求めるため、書き出し後に確かめる
+async function checkGeometry(file) {
+  const JSZip = require("jszip");
+  const zip = await JSZip.loadAsync(fs.readFileSync(file));
+  const bad = [];
+  for (const n of Object.keys(zip.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))) {
+    const xml = await zip.file(n).async("string");
+    if (/c[xy]="-\d+"/.test(xml)) bad.push(n.match(/slide(\d+)/)[1]);
+  }
+  if (bad.length) throw new Error(`大きさが負の図形があります（スライド ${bad.sort((a, b) => a - b).join(", ")}）。このファイルは PowerPoint で修復が必要になります。警告の出た枠を見直してください`);
 }
 
 async function build(input, output, overrides = {}) {
@@ -82,6 +92,7 @@ async function build(input, output, overrides = {}) {
     fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
     await ctx.pres.writeFile({ fileName: output });
     await applyThemeXml(output, ctx.theme, ctx.fonts);
+    await checkGeometry(output);
   }
   return ctx;
 }
@@ -89,7 +100,7 @@ async function build(input, output, overrides = {}) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.catalog) {
-    console.log("パターン一覧（Phase 1）");
+    console.log(`パターン一覧（${Object.keys(PATTERNS).length} 種）`);
     for (const [k, p] of Object.entries(PATTERNS)) console.log(`  ${p.id.padEnd(3)} ${k.padEnd(14)} ${p.label}：${p.use}`);
     console.log("\nテーマ: " + Object.entries(THEMES).map(([k, t]) => `${k}（${t.label}）`).join("、"));
     return;

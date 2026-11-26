@@ -7,7 +7,7 @@ SRC="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 OUT="${2:-$(dirname "$SRC")/render}"
 mkdir -p "$OUT"
 NAME="$(basename "$SRC" .pptx)"
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/pptxqa.XXXXXX")"
+WORK="$OUT/.work-$$"; mkdir -p "$WORK"
 cp "$SRC" "$WORK/$NAME.pptx"
 if command -v soffice >/dev/null 2>&1; then
   soffice --headless --convert-to pdf --outdir "$WORK" "$WORK/$NAME.pptx" >/dev/null

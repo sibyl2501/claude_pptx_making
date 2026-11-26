@@ -1,14 +1,24 @@
 {
   "name": "claude-pptx-making",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "JSONの仕様から、編集しやすく密度の高いpptxを生成するテンプレートキット",
   "main": "src/build.js",
-  "bin": { "pptx-build": "src/build.js" },
+  "bin": {
+    "pptx-build": "src/build.js"
+  },
   "scripts": {
     "build": "node src/build.js",
-    "examples": "node src/build.js examples/nn_math.json dist/nn_math.pptx && node src/build.js examples/business_report.json dist/business_report.pptx"
+    "catalog": "node src/build.js --catalog",
+    "schema": "node src/schema.js",
+    "examples": "node src/build.js examples/nn_math.json dist/nn_math.pptx && node src/build.js examples/business_report.json dist/business_report.pptx && node src/build.js examples/catalog.json dist/catalog.pptx",
+    "test": "node --test tests/build.test.js"
   },
-  "engines": { "node": ">=18" },
-  "dependencies": { "pptxgenjs": "^3.12.0" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "pptxgenjs": "^3.12.0"
+  }
 }

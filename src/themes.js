@@ -80,6 +80,7 @@ function getTheme(name) {
     name,
     accentTint: mix(t.accent, "FFFFFF", 0.82),
     primaryTint2: mix(t.primary, "FFFFFF", 0.78),
+    neutralTint: mix(t.rule, "FFFFFF", 0.55),
     onDarkMuted: mix(t.primaryDark, "FFFFFF", 0.7),
     onDarkPanel: mix(t.primaryDark, "FFFFFF", 0.1),
   };

@@ -1,0 +1,4756 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sibyl2501/claude_pptx_making/schema/deck.schema.json",
+  "title": "claude_pptx_making deck",
+  "type": "object",
+  "required": [
+    "deck",
+    "slides"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "deck": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "firstSection": {
+          "type": "string"
+        },
+        "theme": {
+          "enum": [
+            "forest",
+            "navy",
+            "graphite",
+            "burgundy"
+          ]
+        },
+        "size": {
+          "enum": [
+            "a4",
+            "16:9"
+          ]
+        },
+        "density": {
+          "enum": [
+            "dense",
+            "present"
+          ]
+        },
+        "font": {
+          "enum": [
+            "hiragino",
+            "yu-gothic",
+            "meiryo"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "slides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "pattern"
+        ],
+        "properties": {
+          "pattern": {
+            "enum": [
+              "cover",
+              "agenda",
+              "section",
+              "exec_summary",
+              "pillars",
+              "card_grid",
+              "comparison",
+              "matrix_2x2",
+              "logic_tree",
+              "process",
+              "before_after",
+              "chart_insight",
+              "two_charts",
+              "kpi_dashboard",
+              "data_table",
+              "waterfall",
+              "roadmap",
+              "issues_actions",
+              "next_steps",
+              "concept_map",
+              "chart_cards",
+              "derivation",
+              "cheat_sheet",
+              "exercises",
+              "references"
+            ],
+            "description": "スライドの型（node src/build.js --catalog で一覧）"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "cover"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "subtitle": {
+                  "type": "string"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 4
+                },
+                "date": {
+                  "type": "string"
+                },
+                "org": {
+                  "type": "string"
+                },
+                "author": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "agenda"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "page": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 2,
+                  "maxItems": 9
+                },
+                "current": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "title",
+                "items"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "section"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": [
+                    "string",
+                    "number"
+                  ]
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 5
+                },
+                "pointsTitle": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "exec_summary"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 2,
+                  "maxItems": 4
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "body": {
+                            "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "owner": {
+                            "type": "string"
+                          },
+                          "due": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "maxItems": 4
+                },
+                "actionsLabel": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "conclusion",
+                "reasons"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "pillars"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "roof": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "roofLabel": {
+                  "type": "string"
+                },
+                "pillars": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 2,
+                  "maxItems": 5
+                },
+                "foundation": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "foundationLabel": {
+                  "type": "string"
+                },
+                "numbered": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "title",
+                "roof",
+                "pillars"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "card_grid"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "grid": {
+                  "type": "string",
+                  "pattern": "^[1-9]x[1-9]$"
+                },
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 12
+                },
+                "panel": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "width": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "numbered": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "title",
+                "cards"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "comparison"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "criteria": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "values": {
+                        "type": "array",
+                        "items": {
+                          "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "values"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "recommend": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "widths": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "criteriaHeader": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "options",
+                "criteria"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "matrix_2x2"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "xAxis": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "low": {
+                      "type": "string"
+                    },
+                    "high": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "yAxis": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "low": {
+                      "type": "string"
+                    },
+                    "high": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "quadrants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "highlight": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "x": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "highlight": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "panel": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "width": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "matrixWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "xAxis",
+                "yAxis",
+                "quadrants"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "logic_tree"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "root": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "title"
+                  ],
+                  "additionalProperties": false
+                },
+                "children": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "children": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "title"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "levels": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "ratios": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "title",
+                "root",
+                "children"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "process"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "subtitle": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 2,
+                  "maxItems": 7
+                },
+                "emphasize": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "title",
+                "steps"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "before_after"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "before": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "after": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "before",
+                      "after"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "beforeLabel": {
+                  "type": "string"
+                },
+                "afterLabel": {
+                  "type": "string"
+                },
+                "labelWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "rows"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "chart_insight"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "chart": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "enum": [
+                            "bar",
+                            "hbar",
+                            "stacked",
+                            "hstacked",
+                            "line",
+                            "area",
+                            "pie",
+                            "doughnut"
+                          ]
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          }
+                        },
+                        "series": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "values": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "values"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "highlight": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "series"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "waterfall"
+                        },
+                        "start": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "steps": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "endLabel": {
+                          "type": "string"
+                        },
+                        "invert": {
+                          "type": "boolean"
+                        },
+                        "increaseLabel": {
+                          "type": "string"
+                        },
+                        "decreaseLabel": {
+                          "type": "string"
+                        },
+                        "totalLabel": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "start",
+                        "steps"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "insights": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 5
+                },
+                "chartWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "chart",
+                "insights"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "two_charts"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "charts": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "bar",
+                              "hbar",
+                              "stacked",
+                              "hstacked",
+                              "line",
+                              "area",
+                              "pie",
+                              "doughnut"
+                            ]
+                          },
+                          "categories": {
+                            "type": "array",
+                            "items": {
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            }
+                          },
+                          "series": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "values": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "values"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "minItems": 1
+                          },
+                          "highlight": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "min": {
+                            "type": "number"
+                          },
+                          "max": {
+                            "type": "number"
+                          },
+                          "majorUnit": {
+                            "type": "number"
+                          },
+                          "format": {
+                            "type": "string"
+                          },
+                          "valueLabels": {
+                            "type": "boolean"
+                          },
+                          "markers": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "categories",
+                          "series"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "const": "waterfall"
+                          },
+                          "start": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "steps": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "minItems": 1
+                          },
+                          "endLabel": {
+                            "type": "string"
+                          },
+                          "invert": {
+                            "type": "boolean"
+                          },
+                          "increaseLabel": {
+                            "type": "string"
+                          },
+                          "decreaseLabel": {
+                            "type": "string"
+                          },
+                          "totalLabel": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "min": {
+                            "type": "number"
+                          },
+                          "max": {
+                            "type": "number"
+                          },
+                          "majorUnit": {
+                            "type": "number"
+                          },
+                          "format": {
+                            "type": "string"
+                          },
+                          "valueLabels": {
+                            "type": "boolean"
+                          },
+                          "markers": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "start",
+                          "steps"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "insights": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 4
+                },
+                "sameScale": {
+                  "type": "boolean"
+                },
+                "insightsHeight": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "charts"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "kpi_dashboard"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "kpis": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "delta": {
+                        "type": "string"
+                      },
+                      "good": {
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "note": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 6
+                },
+                "chart": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "enum": [
+                            "bar",
+                            "hbar",
+                            "stacked",
+                            "hstacked",
+                            "line",
+                            "area",
+                            "pie",
+                            "doughnut"
+                          ]
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          }
+                        },
+                        "series": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "values": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "values"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "highlight": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "series"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "waterfall"
+                        },
+                        "start": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "steps": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "endLabel": {
+                          "type": "string"
+                        },
+                        "invert": {
+                          "type": "boolean"
+                        },
+                        "increaseLabel": {
+                          "type": "string"
+                        },
+                        "decreaseLabel": {
+                          "type": "string"
+                        },
+                        "totalLabel": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "start",
+                        "steps"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "panel": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "width": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "insights": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "kpiHeight": {
+                  "type": "number"
+                },
+                "chartWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "kpis",
+                "chart"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "data_table"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "array",
+                  "items": {
+                    "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                    "oneOf": [
+                      {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "fill": {
+                            "type": "string"
+                          },
+                          "align": {
+                            "enum": [
+                              "left",
+                              "center",
+                              "right"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                      "oneOf": [
+                        {
+                          "type": [
+                            "string",
+                            "number"
+                          ]
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "fill": {
+                              "type": "string"
+                            },
+                            "align": {
+                              "enum": [
+                                "left",
+                                "center",
+                                "right"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "widths": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "align": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "left",
+                      "center",
+                      "right"
+                    ]
+                  }
+                },
+                "highlight": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rowsPerPage": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "tagColors": {
+                  "type": "object",
+                  "description": "値 → 色（テーマのトークン名か HEX）",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "title",
+                "headers",
+                "rows"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "waterfall"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "waterfall": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "waterfall"
+                    },
+                    "start": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 1
+                    },
+                    "endLabel": {
+                      "type": "string"
+                    },
+                    "invert": {
+                      "type": "boolean"
+                    },
+                    "increaseLabel": {
+                      "type": "string"
+                    },
+                    "decreaseLabel": {
+                      "type": "string"
+                    },
+                    "totalLabel": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "majorUnit": {
+                      "type": "number"
+                    },
+                    "format": {
+                      "type": "string"
+                    },
+                    "valueLabels": {
+                      "type": "boolean"
+                    },
+                    "markers": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "start",
+                    "steps"
+                  ],
+                  "additionalProperties": false
+                },
+                "insights": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 5
+                },
+                "chartWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "waterfall",
+                "insights"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "roadmap"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "periods": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "taskHeader": {
+                  "type": "string"
+                },
+                "tasks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "owner": {
+                        "type": "string"
+                      },
+                      "start": {
+                        "type": "number"
+                      },
+                      "end": {
+                        "type": "number"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "highlight": {
+                        "type": "boolean"
+                      },
+                      "milestone": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "goals": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 4
+                },
+                "goalsHeight": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "periods",
+                "tasks"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "issues_actions"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "issue": {
+                        "type": "string"
+                      },
+                      "detail": {
+                        "type": "string"
+                      },
+                      "priority": {
+                        "enum": [
+                          "高",
+                          "中",
+                          "低",
+                          ""
+                        ]
+                      },
+                      "impact": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "action": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "owner": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "issue",
+                      "action"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "widths": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "labels": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "title",
+                "rows"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "next_steps"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "decisions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "due": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "owner": {
+                        "type": "string"
+                      },
+                      "due": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                },
+                "decisionsLabel": {
+                  "type": "string"
+                },
+                "actionsLabel": {
+                  "type": "string"
+                },
+                "leftWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "decisions",
+                "actions"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "concept_map"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "array",
+                  "items": {
+                    "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                    "oneOf": [
+                      {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "fill": {
+                            "type": "string"
+                          },
+                          "align": {
+                            "enum": [
+                              "left",
+                              "center",
+                              "right"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                      "oneOf": [
+                        {
+                          "type": [
+                            "string",
+                            "number"
+                          ]
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "fill": {
+                              "type": "string"
+                            },
+                            "align": {
+                              "enum": [
+                                "left",
+                                "center",
+                                "right"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "widths": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "align": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "left",
+                      "center",
+                      "right"
+                    ]
+                  }
+                },
+                "tagColors": {
+                  "type": "object",
+                  "description": "値 → 色（テーマのトークン名か HEX）",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "flow": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 5
+                },
+                "flowEmphasize": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "flowHeight": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "headers",
+                "rows"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "chart_cards"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "chart": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "enum": [
+                            "bar",
+                            "hbar",
+                            "stacked",
+                            "hstacked",
+                            "line",
+                            "area",
+                            "pie",
+                            "doughnut"
+                          ]
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          }
+                        },
+                        "series": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "values": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "values"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "highlight": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "series"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "const": "waterfall"
+                        },
+                        "start": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "steps": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1
+                        },
+                        "endLabel": {
+                          "type": "string"
+                        },
+                        "invert": {
+                          "type": "boolean"
+                        },
+                        "increaseLabel": {
+                          "type": "string"
+                        },
+                        "decreaseLabel": {
+                          "type": "string"
+                        },
+                        "totalLabel": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "majorUnit": {
+                          "type": "number"
+                        },
+                        "format": {
+                          "type": "string"
+                        },
+                        "valueLabels": {
+                          "type": "boolean"
+                        },
+                        "markers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "start",
+                        "steps"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "panel": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "width": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "num": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      "stat": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": [
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 8
+                },
+                "grid": {
+                  "type": "string",
+                  "pattern": "^[1-9]x[1-9]$"
+                },
+                "chartWidth": {
+                  "type": "number"
+                },
+                "chartHeight": {
+                  "type": "number"
+                },
+                "numbered": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "title",
+                "chart",
+                "cards"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "derivation"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "width": {
+                        "type": "number"
+                      },
+                      "blocks": {
+                        "type": "array",
+                        "items": {
+                          "description": "derivation の列に積むブロック",
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "card"
+                                },
+                                "title": {
+                                  "type": "string"
+                                },
+                                "body": {
+                                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "num": {
+                                  "type": [
+                                    "string",
+                                    "number"
+                                  ]
+                                },
+                                "stat": {
+                                  "type": "object",
+                                  "properties": {
+                                    "value": {
+                                      "type": [
+                                        "string",
+                                        "number"
+                                      ]
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "value"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "panel"
+                                },
+                                "title": {
+                                  "type": "string"
+                                },
+                                "body": {
+                                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "table"
+                                },
+                                "headers": {
+                                  "type": "array",
+                                  "items": {
+                                    "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                                    "oneOf": [
+                                      {
+                                        "type": [
+                                          "string",
+                                          "number"
+                                        ]
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                            "oneOf": [
+                                              {
+                                                "type": "string"
+                                              },
+                                              {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          "fill": {
+                                            "type": "string"
+                                          },
+                                          "align": {
+                                            "enum": [
+                                              "left",
+                                              "center",
+                                              "right"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    ]
+                                  }
+                                },
+                                "rows": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "array",
+                                    "items": {
+                                      "description": "表のセル。文字列・数値・段落の配列、または {text, fill, align}",
+                                      "oneOf": [
+                                        {
+                                          "type": [
+                                            "string",
+                                            "number"
+                                          ]
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "text": {
+                                              "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                              "oneOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            "fill": {
+                                              "type": "string"
+                                            },
+                                            "align": {
+                                              "enum": [
+                                                "left",
+                                                "center",
+                                                "right"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "text"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "widths": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  }
+                                },
+                                "align": {
+                                  "type": "array",
+                                  "items": {
+                                    "enum": [
+                                      "left",
+                                      "center",
+                                      "right"
+                                    ]
+                                  }
+                                },
+                                "highlight": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "tagColors": {
+                                  "type": "object",
+                                  "description": "値 → 色（テーマのトークン名か HEX）",
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  }
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "headers",
+                                "rows"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "chart"
+                                },
+                                "chart": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "enum": [
+                                            "bar",
+                                            "hbar",
+                                            "stacked",
+                                            "hstacked",
+                                            "line",
+                                            "area",
+                                            "pie",
+                                            "doughnut"
+                                          ]
+                                        },
+                                        "categories": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": [
+                                              "string",
+                                              "number"
+                                            ]
+                                          }
+                                        },
+                                        "series": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "name": {
+                                                "type": "string"
+                                              },
+                                              "values": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "name",
+                                              "values"
+                                            ],
+                                            "additionalProperties": false
+                                          },
+                                          "minItems": 1
+                                        },
+                                        "highlight": {
+                                          "type": "integer",
+                                          "minimum": 0
+                                        },
+                                        "title": {
+                                          "type": "string"
+                                        },
+                                        "unit": {
+                                          "type": "string"
+                                        },
+                                        "min": {
+                                          "type": "number"
+                                        },
+                                        "max": {
+                                          "type": "number"
+                                        },
+                                        "majorUnit": {
+                                          "type": "number"
+                                        },
+                                        "format": {
+                                          "type": "string"
+                                        },
+                                        "valueLabels": {
+                                          "type": "boolean"
+                                        },
+                                        "markers": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "categories",
+                                        "series"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "const": "waterfall"
+                                        },
+                                        "start": {
+                                          "type": "object",
+                                          "properties": {
+                                            "label": {
+                                              "type": "string"
+                                            },
+                                            "value": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "label",
+                                            "value"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "steps": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "label": {
+                                                "type": "string"
+                                              },
+                                              "value": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "label",
+                                              "value"
+                                            ],
+                                            "additionalProperties": false
+                                          },
+                                          "minItems": 1
+                                        },
+                                        "endLabel": {
+                                          "type": "string"
+                                        },
+                                        "invert": {
+                                          "type": "boolean"
+                                        },
+                                        "increaseLabel": {
+                                          "type": "string"
+                                        },
+                                        "decreaseLabel": {
+                                          "type": "string"
+                                        },
+                                        "totalLabel": {
+                                          "type": "string"
+                                        },
+                                        "title": {
+                                          "type": "string"
+                                        },
+                                        "unit": {
+                                          "type": "string"
+                                        },
+                                        "min": {
+                                          "type": "number"
+                                        },
+                                        "max": {
+                                          "type": "number"
+                                        },
+                                        "majorUnit": {
+                                          "type": "number"
+                                        },
+                                        "format": {
+                                          "type": "string"
+                                        },
+                                        "valueLabels": {
+                                          "type": "boolean"
+                                        },
+                                        "markers": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "start",
+                                        "steps"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "chart"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "kpi"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": [
+                                    "string",
+                                    "number"
+                                  ]
+                                },
+                                "unit": {
+                                  "type": "string"
+                                },
+                                "delta": {
+                                  "type": "string"
+                                },
+                                "good": {
+                                  "enum": [
+                                    "up",
+                                    "down"
+                                  ]
+                                },
+                                "note": {
+                                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "label",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "diagram"
+                                },
+                                "layers": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  },
+                                  "minItems": 2
+                                },
+                                "labels": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "edgeLabels": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "layers"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "image"
+                                },
+                                "path": {
+                                  "type": "string"
+                                },
+                                "alt": {
+                                  "type": "string"
+                                },
+                                "fit": {
+                                  "enum": [
+                                    "contain",
+                                    "cover",
+                                    "crop"
+                                  ]
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "path"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "message"
+                                },
+                                "text": {
+                                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "grow": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "text"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "blocks"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 4
+                }
+              },
+              "required": [
+                "title",
+                "columns"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "cheat_sheet"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 2,
+                  "maxItems": 10
+                },
+                "highlight": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "grid": {
+                  "type": "string",
+                  "pattern": "^[1-9]x[1-9]$"
+                }
+              },
+              "required": [
+                "title",
+                "columns"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "exercises"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "q": {
+                        "type": "string"
+                      },
+                      "hint": {
+                        "type": "string"
+                      },
+                      "answer": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "q"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 8
+                },
+                "roadmap": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 6
+                },
+                "questionsLabel": {
+                  "type": "string"
+                },
+                "roadmapLabel": {
+                  "type": "string"
+                },
+                "questionsWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title",
+                "questions"
+              ],
+              "unevaluatedProperties": false
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "pattern": {
+                  "const": "references"
+                }
+              },
+              "required": [
+                "pattern"
+              ]
+            },
+            "then": {
+              "properties": {
+                "pattern": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lead": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "conclusion": {
+                  "description": "本文。文字列か、1要素1段落の配列。ミニ記法が使える",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "conclusionLabel": {
+                  "type": "string"
+                },
+                "glossary": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "term": {
+                        "type": "string"
+                      },
+                      "desc": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "term",
+                      "desc"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "references": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "glossaryLabel": {
+                  "type": "string"
+                },
+                "referencesLabel": {
+                  "type": "string"
+                },
+                "glossaryWidth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "unevaluatedProperties": false
+            }
+          }
+        ]
+      },
+      "minItems": 1
+    }
+  }
+}

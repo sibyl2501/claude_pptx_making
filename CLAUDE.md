@@ -3,19 +3,25 @@
 ## 資料を作る手順
 
 1. **目的と読み手を確認する。** 読む資料か発表か（`density`）、印刷か画面か（`size`）、どのテーマか。指定がなければ A4 横・dense・用途に合うテーマ（学習＝forest、報告＝navy、技術＝graphite、経営＝burgundy）。
-2. **ストーリーを先に組む。** 1枚1メッセージ。結論を先に（表紙 → 要約 → 章ごとの根拠 → 計画）。見出し（`title`）は「〜する」「〜だった」と結論を言い切り、1行に収める。
-3. **パターンを選ぶ。** `node src/build.js --catalog`。同じパターンを続けすぎない。迷ったら：
-   - 並列の論点 → `card_grid`／案の比較 → `comparison`／数値の推移 → `chart_insight`・`kpi_dashboard`
-   - 計画 → `roadmap`／概念の整理 → `concept_map`／式・図・表を組み合わせる解説 → `derivation`
-4. **JSON を書く。** 書き方は README と `examples/` を真似る。数値・事実は元資料に基づき、出典を `source` に書く。架空の値を使うときは出典欄に明記する。
+2. **ストーリーを先に組む。** 1枚1メッセージ。結論を先に（表紙 → 目次 → 要約 → 章ごとの根拠 → 計画 → 次の行動）。見出し（`title`）は「〜する」「〜だった」と結論を言い切り、1行に収める（A4 で全角30字程度まで）。
+3. **パターンを選ぶ。** `node src/build.js --catalog`、実例は `examples/catalog.json`。同じパターンを続けすぎない。迷ったら：
+   - 結論と根拠 → `exec_summary`／同格の要素 → `pillars`・`card_grid`／案の比較 → `comparison`
+   - 位置づけ → `matrix_2x2`／原因の分解 → `logic_tree`／流れ → `process`／変化 → `before_after`
+   - 数値 → `chart_insight`・`two_charts`・`kpi_dashboard`・`waterfall`・`data_table`
+   - 計画 → `roadmap`・`issues_actions`・`next_steps`
+   - 学習 → `concept_map`・`chart_cards`・`derivation`・`cheat_sheet`・`exercises`・`references`
+4. **JSON を書く。** 項目は `schema/deck.schema.json` に従う（未知の項目名はエラーになる）。数値・事実は元資料に基づき、出典を `source` に書く。架空の値を使うときは出典欄に明記する。
 5. **検査する。** `node src/build.js --check deck.json`。
+   - 「入力エラー」→ 示された項目を直す
    - 「収まりません」→ 文を短くする、箇条を減らす、ページを分ける
    - 「空きが多め」「中身が少ない枠」→ 根拠・数値・具体例を足す、カードの少ない grid にする
-6. **生成して目で確認する。** `node src/build.js deck.json out.pptx` → `qa/render.sh out.pptx render/` → 全ページの PNG を見る。はみ出し、1〜2文字だけの最終行、重なり、空きすぎを直す。
+   - 「最終行が1〜2文字」→ 言い回しを少し変える（語尾を削る・言い換える）
+6. **生成して目で確認する。** `node src/build.js deck.json out.pptx` → `qa/render.sh out.pptx render/` → 全ページの PNG を見る。はみ出し、重なり、空きすぎ、図の点と文字の重なり（`matrix_2x2` の `items`）を直す。
 
 ## コードを変えるとき
 
 - 座標・文字サイズ・字幅は `src/config.js`、色は `src/themes.js` に集約する。パターンの中に数値を直書きしない（間隔は `GAP`）。
-- 新しいパターンは `src/patterns.js` の `PATTERNS` に `id / label / use / required / render` を登録し、`examples/` に見本を追加して README の表を更新する。
-- 変更後は両方の見本を生成し直し、`qa/render.sh` で確認してから `docs/images/` の一覧画像と `dist/` を更新する。
-- 書き出した pptx は Office の検査（pptx スキルの `validate.py`）を通す。
+- 新しいパターンは `src/patterns/` にファイルを作り、`src/patterns/index.js` の一覧、`src/schema.js` の `P`、`examples/catalog.json`、README の表に加える。
+- 変更後は `npm test`（全見本を全設定で生成して検査）を通し、`npm run examples` と `qa/render.sh` で目で確認してから、`docs/images/` の一覧画像と `dist/` を更新する。
+- 図形の大きさが負になると PowerPoint が「修復」を求める。`build.js` が検出して止めるので、出たら該当の枠の高さ計算を直す。
+- 書き出した pptx は Office の検査（pptx スキルの `validate.py`）も通す。

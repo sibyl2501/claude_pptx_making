@@ -30,7 +30,7 @@ function naturalHeight(ctx, b, w) {
       const rows = 1 + b.rows.length;
       return rows * ((ctx.sizes.table[1] + 1) / 72) * 1.2 + rows * 0.1 + 0.1;
     }
-    case "kpi": return 1.3;
+    case "kpi": return b.note ? 1.95 : 1.6;
     case "message": return 0.72;
     default: return 1.6;
   }
