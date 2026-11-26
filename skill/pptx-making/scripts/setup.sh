@@ -22,7 +22,7 @@ else
 fi
 
 if [ ! -d "$KIT/node_modules/pptxgenjs" ] || [ ! -d "$KIT/node_modules/ajv" ]; then
-  (cd "$KIT" && npm install --silent >/dev/null 2>&1) && echo "Node の依存をインストールしました"
+  (cd "$KIT" && npm ci --silent >/dev/null 2>&1) && echo "Node の依存をインストールしました"
 fi
 
 if [ ! -x "$KIT/.venv/bin/python" ]; then
