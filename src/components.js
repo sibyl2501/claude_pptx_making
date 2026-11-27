@@ -3,12 +3,13 @@
 // 文字を含む部品は「計画（plan）→ 文字サイズの一括決定（renderGroup）→ 描画」の順で処理する。
 // 同じページのカード同士は同じ文字サイズにそろえるため。
 
-const { toParagraphs, buildRuns, runsOf, plain } = require("./markup");
-const { measure, fitSize, fitsOneLine } = require("./textfit");
+const { toParagraphs, buildRuns, runsOf, linesToRuns, plain } = require("./markup");
+const { measure, fitSize, fitsOneLine, breakHeading, headingLines } = require("./textfit");
 const { GAP, METRICS } = require("./config");
 
 const PAD = 0.14; // 枠の内側の余白
 const PARA_AFTER = 3; // 段落の後ろの間隔（pt）
+const BOLD_W = 0.93; // 太字は字幅が広いので、見出しの改行位置を決めるときは幅をこの割合で見積もる
 
 // ---------------------------------------------------------------- 計画と一括描画
 // plan = { areas: [{w, h, paras}], draw(size) }
@@ -24,12 +25,16 @@ function renderGroup(ctx, rec, plans, range, opts = {}) {
     return s;
   };
   let size = pick(max);
-  // 最大サイズでもすべての枠が半分ほどしか埋まらないときは、2pt まで大きくして空きを減らす
-  const allSparse = (s) => plans.every((p) => p.areas.every((a) => !a.paras.length || measure(a.paras, a.w, s, PARA_AFTER).height < a.h * 0.55));
-  const cap = ctx.sizes.body[0] + 2;
-  if (opts.boost !== false && size === max && max < cap && allSparse(max)) size = pick(cap);
-  // 最終行が1〜2文字になる段落が減るなら、0.5〜1pt 小さくする
   const orphanCount = (s) => plans.reduce((n, p) => n + p.areas.reduce((m, a) => m + (a.paras.length ? measure(a.paras, a.w, s, PARA_AFTER).orphans.length : 0), 0), 0);
+  // 最大サイズでも枠に空きが多いときは、最も詰まった枠が 8 割を超えない範囲で 3pt まで大きくする。
+  // 大きくして最終行が1〜2文字の段落が増えるサイズは選ばない
+  const fullest = (s) => Math.max(0, ...plans.flatMap((p) => p.areas.filter((a) => a.paras.length).map((a) => measure(a.paras, a.w, s, PARA_AFTER).height / a.h)));
+  const cap = ctx.sizes.body[0] + 3;
+  if (opts.boost !== false && size === max) {
+    const base = orphanCount(max);
+    for (let s = max + 0.5; s <= cap && fullest(s) <= 0.8; s += 0.5) if (orphanCount(s) <= base) size = s;
+  }
+  // 最終行が1〜2文字になる段落が減るなら、0.5〜1pt 小さくする
   let best = size, bestN = orphanCount(size);
   for (const s of [size - 0.5, size - 1]) {
     if (s < min || !bestN) break;
@@ -37,7 +42,14 @@ function renderGroup(ctx, rec, plans, range, opts = {}) {
     if (n < bestN) { best = s; bestN = n; }
   }
   size = best;
+  // 文字が枠の上半分に集まらないように、空きの多い枠は段落の間と行間を広げる。
+  // 並んだ枠で行間がばらつかないよう、行間の倍率は全枠で最も小さい値にそろえる
+  const all = plans.flatMap((p) => p.areas).filter((a) => a.paras.length);
+  for (const a of all) a.spacing = opts.spread === false ? null : spreadOf(a, size);
+  const common = Math.min(...all.map((a) => (a.spacing ? a.spacing.lineSpacing : 1)));
+  for (const a of all) if (a.spacing) a.spacing = { paraAfter: a.spacing.paraAfter, lineSpacing: common };
   for (const p of plans) {
+    // 文字が枠の上半分に集まらないように、空きの多い枠は段落の間と行間を広げる
     p.draw(size);
     for (const a of p.areas) {
       if (!a.paras.length) continue;
@@ -51,6 +63,38 @@ function renderGroup(ctx, rec, plans, range, opts = {}) {
   return size;
 }
 
+// 枠の 8 割ほどまで文字が広がるように、段落の後ろの間隔（pt）と行間の倍率を決める。
+// 段落の間を先に広げ（文字サイズの 0.9 倍まで）、足りなければ行間を 1.3 倍まで広げる。
+function spreadOf(a, size) {
+  const m = measure(a.paras, a.w, size, PARA_AFTER);
+  if (m.height >= a.h * 0.7) return null;
+  const target = a.h * 0.8, n = a.paras.length;
+  const linesH = m.height - (n * PARA_AFTER) / 72;
+  const gapPt = n > 1 ? Math.min(size * 0.9, PARA_AFTER + ((target - m.height) * 72) / n) : PARA_AFTER;
+  let lineSpacing = 1;
+  const rest = target - (n * gapPt) / 72;
+  if (linesH > 0 && rest > linesH) lineSpacing = Math.min(1.3, rest / linesH);
+  return { paraAfter: Math.round(gapPt * 2) / 2, lineSpacing: Math.round(lineSpacing * 100) / 100 };
+}
+
+// 本文のラン（枠ごとの間隔の調整を反映する）
+// 本文中の太字だけの段落（**小見出し**）も、見出しと同じく読みやすい位置で改行する
+function bodyRuns(ctx, area, size, color) {
+  const sp = area.spacing || {};
+  const paras = area.paras.flatMap((p) => {
+    const m = !p.bullet && !p.display && /^\*\*([^*]+)\*\*$/.exec(p.text.trim());
+    if (!m) return [p];
+    const lines = breakHeading(m[1], area.w * BOLD_W, size, 3);
+    return lines.map((t, i) => ({ ...p, text: `**${t}**`, after: i < lines.length - 1 ? 0 : undefined }));
+  });
+  return buildRuns(paras, ctx, { fontSize: size, color, paraAfter: sp.paraAfter ?? PARA_AFTER, lineSpacing: sp.lineSpacing });
+}
+
+// 見出しのラン：読みやすい位置で行を分ける（かっこ書きが長ければかっこの前で改行）
+function headRuns(ctx, text, w, fontSize, base, maxLines = 3) {
+  return linesToRuns(breakHeading(text, base.bold ? w * BOLD_W : w, fontSize, maxLines), ctx, { fontSize, ...base });
+}
+
 // 文字のない部品（グラフ・図・表）は面積を満たしたものとして記録する
 function recordSolid(rec, box, label) {
   rec.areas.push({ area: box.w * box.h, fill: 1, label });
@@ -61,10 +105,10 @@ function textBox(ctx, slide, box, runs, opt = {}) {
   slide.addText(runs, { x: box.x, y: box.y, w: Math.max(0.05, box.w), h: Math.max(0.05, box.h), margin: 0, valign: opt.valign || "top", align: opt.align || "left", isTextBox: true, objectName: ctx.nm(opt.name || "text"), fit: "none" });
 }
 
+// 丸数字。円と数字を1つの図形にして、動かしても数字がずれないようにする
 function badge(ctx, slide, x, y, num, d = 0.3) {
   const { theme, fonts } = ctx;
-  slide.addShape(ctx.pres.shapes.OVAL, { x, y, w: d, h: d, fill: { color: theme.accent }, line: { type: "none" }, objectName: ctx.nm("badge") });
-  slide.addText(String(num), { x, y, w: d, h: d, fontFace: fonts.jp, fontSize: d > 0.32 ? 13 : 11, bold: true, color: theme.primaryDark, align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: ctx.nm("badge-num") });
+  slide.addText(String(num), { shape: ctx.pres.shapes.OVAL, x, y, w: d, h: d, fill: { color: theme.accent }, line: { type: "none" }, fontFace: fonts.jp, fontSize: d > 0.32 ? 13 : 11, bold: true, color: theme.primaryDark, align: "center", valign: "middle", margin: 0, objectName: ctx.nm("badge") });
 }
 
 // ---------------------------------------------------------------- カード
@@ -75,7 +119,7 @@ function planCard(ctx, slide, box, spec, opt = {}) {
   const hasNum = spec.num !== undefined && spec.num !== null;
   const tx = box.x + (hasNum ? 0.52 : PAD);
   const tw = box.x + box.w - tx - PAD;
-  const titleLines = !spec.title ? 0 : fitsOneLine(spec.title, tw, sizes.cardTitle) ? 1 : 2;
+  const titleLines = !spec.title ? 0 : Math.min(3, headingLines(spec.title, tw * BOLD_W, sizes.cardTitle));
   const titleH = titleLines ? (titleLines * sizes.cardTitle * METRICS.lineHeight) / 72 + 0.06 : 0;
   const headH = opt.header && spec.title ? Math.max(titleH, hasNum ? 0.32 : 0) + 0.2 : 0;
   let y = box.y + 0.11 + Math.max(titleH, hasNum ? 0.32 : 0) + 0.05 + (headH ? 0.08 : 0);
@@ -92,7 +136,7 @@ function planCard(ctx, slide, box, spec, opt = {}) {
         slide.addShape(ctx.pres.shapes.RECTANGLE, { x: box.x, y: box.y + headH / 2, w: box.w, h: headH / 2, fill: { color: opt.header.fill }, line: { type: "none" }, objectName: ctx.nm("card-head-base") });
       }
       if (hasNum) badge(ctx, slide, box.x + 0.12, box.y + 0.11, spec.num);
-      if (spec.title) textBox(ctx, slide, { x: tx, y: box.y + 0.1, w: tw, h: Math.max(titleH, 0.32) }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: headH ? opt.header.color : theme.primaryDark }), { valign: "middle", name: "card-title" });
+      if (spec.title) textBox(ctx, slide, { x: tx, y: box.y + 0.1, w: tw, h: Math.max(titleH, 0.32) }, headRuns(ctx, spec.title, tw, sizes.cardTitle, { bold: true, color: headH ? opt.header.color : theme.primaryDark }), { valign: "middle", name: "card-title" });
       if (spec.stat) {
         const s = sizes.kpiValue * 0.95;
         textBox(ctx, slide, { x: area.x, y, w: area.w, h: statH }, [
@@ -100,7 +144,7 @@ function planCard(ctx, slide, box, spec, opt = {}) {
           { text: spec.stat.label ? "  " + spec.stat.label : "", options: { fontFace: ctx.fonts.jp, fontSize: Math.max(size, 10), color: theme.muted } },
         ], { valign: "bottom", name: "card-stat" });
       }
-      textBox(ctx, slide, area, buildRuns(area.paras, ctx, { fontSize: size, color: theme.ink, paraAfter: PARA_AFTER }), { name: "card-body" });
+      textBox(ctx, slide, area, bodyRuns(ctx, area, size, theme.ink), { name: "card-body" });
     },
   };
 }
@@ -108,14 +152,16 @@ function planCard(ctx, slide, box, spec, opt = {}) {
 // ---------------------------------------------------------------- パネル（白地＋主色の枠線）
 function planPanel(ctx, slide, box, spec) {
   const { theme, sizes } = ctx;
-  const titleH = spec.title ? (sizes.cardTitle * METRICS.lineHeight) / 72 + 0.08 : 0;
-  const area = { x: box.x + PAD + 0.02, y: box.y + 0.12 + titleH, w: box.w - 2 * PAD - 0.04, h: box.h - 0.22 - titleH, paras: toParagraphs(spec.body), label: spec.title || "パネル" };
+  const tw = box.w - 2 * PAD - 0.04;
+  const titleLines = spec.title ? Math.min(3, headingLines(spec.title, tw * BOLD_W, sizes.cardTitle)) : 0;
+  const titleH = spec.title ? (titleLines * sizes.cardTitle * METRICS.lineHeight) / 72 + 0.08 : 0;
+  const area = { x: box.x + PAD + 0.02, y: box.y + 0.12 + titleH, w: tw, h: box.h - 0.22 - titleH, paras: toParagraphs(spec.body), label: spec.title || "パネル" };
   return {
     areas: [area],
     draw(size) {
       slide.addShape(ctx.pres.shapes.ROUNDED_RECTANGLE, { x: box.x, y: box.y, w: box.w, h: box.h, rectRadius: 0.06, fill: { color: theme.white }, line: { color: theme.primary, width: 1 }, objectName: ctx.nm("panel") });
-      if (spec.title) textBox(ctx, slide, { x: area.x, y: box.y + 0.1, w: area.w, h: titleH }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: theme.primary }), { valign: "middle", name: "panel-title" });
-      textBox(ctx, slide, area, buildRuns(area.paras, ctx, { fontSize: size, color: theme.ink, paraAfter: PARA_AFTER }), { name: "panel-body" });
+      if (spec.title) textBox(ctx, slide, { x: area.x, y: box.y + 0.1, w: area.w, h: titleH }, headRuns(ctx, spec.title, area.w, sizes.cardTitle, { bold: true, color: theme.primary }), { valign: "middle", name: "panel-title" });
+      textBox(ctx, slide, area, bodyRuns(ctx, area, size, theme.ink), { name: "panel-body" });
     },
   };
 }
@@ -127,9 +173,10 @@ function keyMessage(ctx, slide, rec, box, text, label = "結論") {
   const lw = 0.95;
   slide.addText(label, { x: box.x + 0.14, y: box.y + (box.h - 0.3) / 2, w: lw - 0.1, h: 0.3, fontFace: fonts.jp, fontSize: 10.5, bold: true, color: theme.white, align: "center", valign: "middle", margin: 0, fill: { color: theme.primary }, isTextBox: true, objectName: ctx.nm("key-label") });
   const area = { x: box.x + 0.14 + lw + 0.1, y: box.y + 0.06, w: box.w - lw - 0.38, h: box.h - 0.12 };
-  const paras = toParagraphs(text);
-  const fit = fitSize(paras, area.w, area.h, [15, 11], 0);
-  textBox(ctx, slide, area, buildRuns(paras, ctx, { fontSize: fit.size, color: theme.primaryDark, bold: true, paraAfter: 0 }), { valign: "middle", name: "key-text" });
+  const fit = fitSize(toParagraphs(text), area.w * BOLD_W, area.h, [15, 11], 0);
+  // 2行になるときは読みやすい位置で分ける
+  const lines = [].concat(...[].concat(text).map((t) => breakHeading(t, area.w * BOLD_W, fit.size, 2)));
+  textBox(ctx, slide, area, buildRuns(toParagraphs(lines), ctx, { fontSize: fit.size, color: theme.primaryDark, bold: true, paraAfter: 0 }), { valign: "middle", name: "key-text" });
   if (!fit.fits) rec.warn.push("結論帯の文が長すぎます。2行以内にしてください");
   rec.areas.push({ area: box.w * box.h, fill: 1, label: "結論帯" });
 }
@@ -145,11 +192,17 @@ function table(ctx, slide, rec, box, spec, opt = {}) {
   const sum = ratio.reduce((a, b) => a + b, 0);
   const colW = ratio.map((r) => (box.w * r) / sum);
   const padX = 0.08, padY = 0.05;
-  const cellParas = (v) => toParagraphs(typeof v === "object" && v !== null && !Array.isArray(v) ? v.text : v);
+  const rawParas = (v) => toParagraphs(typeof v === "object" && v !== null && !Array.isArray(v) ? v.text : v);
+  // 見出し行と1列目（行の見出し）は、読みやすい位置で改行する
+  const cellParas = (v, i, j, s) => {
+    const paras = rawParas(v);
+    if (!(i === 0 || j === 0) || paras.length !== 1 || paras[0].bullet || paras[0].display) return paras;
+    return breakHeading(paras[0].text, (colW[j] - 2 * padX) * BOLD_W, s).map((t) => ({ text: t, bullet: false, level: 0 }));
+  };
   const rowsAll = [spec.headers, ...spec.rows];
   const range = opt.range || ctx.sizes.table;
   // 表全体が枠に収まる最大の文字サイズ
-  const heights = (s) => rowsAll.map((r) => Math.max(...r.map((v, j) => measure(cellParas(v), colW[j] - 2 * padX, s, 0).height)) + 2 * padY);
+  const heights = (s) => rowsAll.map((r, i) => Math.max(...r.map((v, j) => measure(cellParas(v, i, j, s), colW[j] - 2 * padX, s, 0).height)) + 2 * padY);
   let size = range[1];
   for (let s = range[0]; s >= range[1] - 1e-9; s -= 0.5) {
     if (heights(s).reduce((a, b) => a + b, 0) <= box.h) { size = s; break; }
@@ -165,8 +218,8 @@ function table(ctx, slide, rec, box, spec, opt = {}) {
   rec.sizes.add(size);
 
   const markColor = (m) => ({ positive: theme.positive, negative: theme.negative, accentText: ctx.colors.accentText }[MARKS[m]]);
-  const cellRuns = (v, base) => {
-    const paras = cellParas(v);
+  const cellRuns = (v, base, i, j) => {
+    const paras = cellParas(v, i, j, size);
     // 先頭の評価記号（◎○△×）を色分けする
     const runs = buildRuns(paras, ctx, { ...base, paraAfter: 0 });
     for (const r of runs) {
@@ -193,7 +246,7 @@ function table(ctx, slide, rec, box, spec, opt = {}) {
     const bold = isHead || (j === 0 && spec.firstColBold !== false) || !!tagColor(v);
     const obj = typeof v === "object" && v !== null && !Array.isArray(v) ? v : {};
     return {
-      text: cellRuns(v, { fontSize: size, color, bold }),
+      text: cellRuns(v, { fontSize: size, color, bold }, i, j),
       options: { fill: { color: obj.fill ? theme[obj.fill] || obj.fill : fill }, align: obj.align || (spec.align && spec.align[j]) || "left", valign: "middle" },
     };
   }));
@@ -247,6 +300,11 @@ function waterfallSpec(ctx, spec) {
 
 function chart(ctx, slide, rec, box, spec) {
   const { pres, theme, fonts } = ctx;
+  // グラフの中には数式を置けないので、$…$ は代替テキスト（Unicode の文字列）にする
+  const { replaceMath } = require("./math");
+  spec = { ...spec, title: spec.title && replaceMath(spec.title) };
+  if (spec.categories) spec.categories = spec.categories.map((c) => replaceMath(String(c)));
+  if (spec.series) spec.series = spec.series.map((s) => ({ ...s, name: replaceMath(s.name) }));
   if (spec.type === "waterfall") spec = waterfallSpec(ctx, spec);
   if (spec.title && !fitsOneLine(spec.title, box.w * 0.9, 11)) rec.warn.push(`グラフの題名「${spec.title.slice(0, 20)}…」が1行に収まりません。短くするか、単位は unit に移してください`);
   const t = spec.type || "bar";
@@ -330,9 +388,9 @@ function planRow(ctx, slide, box, spec, opt = {}) {
       if (spec.title) {
         const ty = hasBody ? box.y + 0.08 : box.y;
         const th = hasBody ? titleH : box.h;
-        textBox(ctx, slide, { x, y: ty, w, h: th }, runsOf(spec.title, ctx, { fontSize: sizes.cardTitle, bold: true, color: theme.primaryDark }), { valign: hasBody ? "top" : "middle", name: "row-title" });
+        textBox(ctx, slide, { x, y: ty, w, h: th }, headRuns(ctx, spec.title, w, sizes.cardTitle, { bold: true, color: theme.primaryDark }, hasBody ? 1 : 2), { valign: hasBody ? "top" : "middle", name: "row-title" });
       }
-      if (hasBody) textBox(ctx, slide, area, buildRuns(area.paras, ctx, { fontSize: size, color: theme.ink, paraAfter: PARA_AFTER }), { name: "row-body", valign: spec.title ? "top" : "middle" });
+      if (hasBody) textBox(ctx, slide, area, bodyRuns(ctx, area, size, theme.ink), { name: "row-body", valign: spec.title ? "top" : "middle" });
       if (metaW) slide.addText(runsOf(spec.meta, ctx, { fontSize: 11, bold: true, color: theme.muted }), { x: box.x + box.w - metaW - PAD, y: box.y, w: metaW, h: box.h, align: "right", valign: "middle", margin: 0, isTextBox: true, objectName: ctx.nm("row-meta") });
     },
   };
@@ -488,4 +546,4 @@ function image(ctx, slide, rec, box, spec, baseDir) {
   recordSolid(rec, box, "画像");
 }
 
-module.exports = { PAD, GAP, renderGroup, recordSolid, textBox, badge, planCard, planPanel, planRow, keyMessage, table, chart, kpiTile, planStepFlow, gantt, layerDiagram, image, hline, vline, arrowRight };
+module.exports = { PAD, GAP, headRuns, renderGroup, recordSolid, textBox, badge, planCard, planPanel, planRow, keyMessage, table, chart, kpiTile, planStepFlow, gantt, layerDiagram, image, hline, vline, arrowRight };

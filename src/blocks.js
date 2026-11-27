@@ -10,7 +10,7 @@
 
 const C = require("./components");
 const { toParagraphs } = require("./markup");
-const { measure } = require("./textfit");
+const { measure, headingLines } = require("./textfit");
 const { GAP } = require("./config");
 
 const FLEX = new Set(["chart", "diagram", "image"]);
@@ -23,7 +23,7 @@ function naturalHeight(ctx, b, w) {
     case "panel": {
       const m = measure(toParagraphs(b.body), w - 0.3, size);
       const titleW = w - (b.num !== undefined ? 0.66 : 0.28);
-      const titleLines = b.title ? measure([{ text: b.title, bullet: false, level: 0 }], titleW, ctx.sizes.cardTitle, 0).lines : 0;
+      const titleLines = b.title ? Math.min(3, headingLines(b.title, titleW, ctx.sizes.cardTitle)) : 0;
       return m.height + 0.3 + (titleLines * ctx.sizes.cardTitle * 1.2) / 72 + (b.stat ? 0.6 : 0);
     }
     case "table": {
@@ -78,12 +78,15 @@ function layoutColumns(ctx, slide, rec, box, columns, baseDir) {
       const bb = { x, y, w, h: h[i] };
       y += h[i] + GAP;
       if (b.type === "card") textPlans.push(C.planCard(ctx, slide, bb, b));
-      else if (b.type === "panel") textPlans.push(C.planPanel(ctx, slide, bb, b));
+      else if (b.type === "panel") textPlans.push({ ...C.planPanel(ctx, slide, bb, b), kind: "panel" });
       else later.push(() => drawBlock(ctx, slide, rec, bb, b, baseDir));
     });
     x += w + GAP;
   });
-  if (textPlans.length) C.renderGroup(ctx, rec, textPlans);
+  // カードとパネルは別々に文字サイズを決める（詰まったパネルにカードの文字が引きずられないように）
+  const cards = textPlans.filter((p) => p.kind !== "panel"), panels = textPlans.filter((p) => p.kind === "panel");
+  if (cards.length) C.renderGroup(ctx, rec, cards);
+  if (panels.length) C.renderGroup(ctx, rec, panels);
   later.forEach((f) => f());
 }
 

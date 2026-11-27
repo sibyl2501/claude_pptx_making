@@ -21,15 +21,24 @@ cp "$SRC" "$WORK/$NAME.pptx"
 if command -v soffice >/dev/null 2>&1; then
   soffice --headless --convert-to pdf --outdir "$WORK" "$WORK/$NAME.pptx" >/dev/null
 elif [ -d "/Applications/Microsoft PowerPoint.app" ]; then
+  # 同じ名前の資料が開いたままだと、新しいファイルではなく古いほうを PDF にしてしまう。
+  # PDF に保存した後は presentation の参照が使えなくなることがあるため、閉じるときは名前で探して番号で閉じる。
   osascript <<OSA || true
+on closeByName(nm)
+  tell application "Microsoft PowerPoint"
+    repeat with k from (count of presentations) to 1 by -1
+      if name of presentation k is nm then close presentation k saving no
+    end repeat
+  end tell
+end closeByName
 with timeout of 280 seconds
+closeByName("$NAME.pptx")
 tell application "Microsoft PowerPoint"
   open POSIX file "$WORK/$NAME.pptx"
   delay 4
-  set p to presentation "$NAME.pptx"
-  save p in POSIX file "$WORK/$NAME.pdf" as save as PDF
-  close p saving no
+  save presentation "$NAME.pptx" in POSIX file "$WORK/$NAME.pdf" as save as PDF
 end tell
+closeByName("$NAME.pptx")
 end timeout
 OSA
 else

@@ -23,8 +23,15 @@ function fontScheme(fonts) {
   return `<a:fontScheme name="${esc(fonts.jp)}">${f("majorFont")}${f("minorFont")}</a:fontScheme>`;
 }
 
-async function applyThemeXml(file, theme, fonts) {
+// ctx を渡すと、スライド・マスター・レイアウトの XML も仕上げる（言語の設定と数式の置き換え。src/slide-xml.js）
+async function applyThemeXml(file, theme, fonts, ctx) {
   const zip = await JSZip.loadAsync(fs.readFileSync(file));
+  if (ctx) {
+    const { finishSlideXml } = require("./slide-xml");
+    for (const n of Object.keys(zip.files).filter((n) => /^ppt\/(slides|slideMasters|slideLayouts|notesSlides)\/[^/]+\.xml$/.test(n))) {
+      zip.file(n, finishSlideXml(await zip.file(n).async("string"), ctx));
+    }
+  }
   const names = Object.keys(zip.files).filter((n) => /^ppt\/theme\/theme\d+\.xml$/.test(n));
   for (const n of names) {
     let xml = await zip.file(n).async("string");

@@ -1,7 +1,7 @@
 // 文字の収まりの見積もり。PowerPoint の実際の折り返しとは数％ずれるため、METRICS.safety で余裕を持たせる。
 
 const { METRICS } = require("./config");
-const { plain } = require("./markup");
+const { plain, plainForWidth, mathTall } = require("./markup");
 
 function charEm(ch) {
   const c = ch.codePointAt(0);
@@ -20,7 +20,7 @@ function charEm(ch) {
 
 function textEm(text) {
   let em = 0;
-  for (const ch of plain(text)) em += charEm(ch);
+  for (const ch of plainForWidth(text)) em += charEm(ch);
   return em * METRICS.safety;
 }
 
@@ -29,7 +29,7 @@ const NO_LINE_START = "、。，．,.・：；:;？！?!）」』】〕］｝〉
 
 // 折り返しの単位に分ける：英単語・数値（10,000 や 3.5% など）はひとかたまり、和文は1文字ずつ
 function tokenize(text) {
-  const raw = plain(text).match(/[A-Za-z0-9][A-Za-z0-9.,%'’+\-]*|\s+|./gu) || [];
+  const raw = plainForWidth(text).match(/[A-Za-z0-9][A-Za-z0-9.,%'’+\-]*|\s+|./gu) || [];
   const out = [];
   for (const t of raw) {
     if (out.length && t.length === 1 && NO_LINE_START.includes(t)) out[out.length - 1] += t;
@@ -62,8 +62,9 @@ function wrap(tokens, capEm, scale) {
 }
 
 // paragraphs: markup.toParagraphs の結果。w は文字の入る幅（インチ）。
+// lineSpacing は行間の倍率（1 = 単一行間）。
 // 戻り値: 必要な高さ（インチ）、行数、最終行が1〜2文字になる段落
-function measure(paragraphs, w, fontSize, paraAfterPt = 3) {
+function measure(paragraphs, w, fontSize, paraAfterPt = 3, lineSpacing = 1) {
   const sizeIn = fontSize / 72;
   let lines = 0;
   const orphans = [];
@@ -72,11 +73,12 @@ function measure(paragraphs, w, fontSize, paraAfterPt = 3) {
     const capEm = Math.max(0.3, w - indent) / sizeIn;
     const toks = tokenize(p.text);
     // 高さは余裕を含めた字幅で、最終行の判定は実際に近い字幅で見積もる
-    lines += wrap(toks, capEm, METRICS.safety).lines;
+    // 分数や総和を含む行は高くなるので、その分を足す
+    lines += wrap(toks, capEm, METRICS.safety).lines + (mathTall(p.text) - 1);
     const real = wrap(toks, capEm, 1);
     if (real.lines > 1 && real.lastChars <= 2) orphans.push(plain(p.text));
   }
-  const h = lines * sizeIn * METRICS.lineHeight + paragraphs.length * (paraAfterPt / 72);
+  const h = lines * sizeIn * METRICS.lineHeight * lineSpacing + paragraphs.length * (paraAfterPt / 72);
   return { height: h, lines, orphans };
 }
 
@@ -95,4 +97,71 @@ function fitsOneLine(text, w, fontSize) {
   return (textEm(text) * fontSize) / 72 <= w;
 }
 
-module.exports = { measure, fitSize, fitsOneLine, textEm };
+// ---------------------------------------------------------------- 見出しの改行位置
+// 見出し・小見出しが1行に入らないとき、PowerPoint に任せると語の途中やかっこの直後で折れる。
+// 読みやすい位置で行を分けて返す（配列の1要素が1行）。
+//   1. はみ出す位置がかっこ書き（「（…）」）の中なら、かっこの直前で改行する
+//   2. それ以外は、はみ出す位置より前の最後の区切り（、。：」）の後・「（の前・空白）で改行する
+//   3. 区切りがなければ分けない（PowerPoint の折り返しに任せる）
+const OPEN = "（(「『【〈《［";
+const AFTER = "、。，．：:；;」』】〉》）)・／/ 　";
+
+function protectedRanges(text) {
+  const out = [];
+  const re = /\*\*.+?\*\*|==.+?==|\[\[.+?\]\]|\$\$[^$]+\$\$|\$[^$]+\$/g;
+  let m;
+  while ((m = re.exec(text))) out.push([m.index, m.index + m[0].length]);
+  return out;
+}
+
+function breakHeading(text, w, fontSize, maxLines = 3) {
+  text = String(text);
+  if (maxLines <= 1 || fitsOneLine(text, w, fontSize)) return [text];
+  const prot = protectedRanges(text);
+  const inside = (i) => prot.some(([a, b]) => i > a && i < b);
+  // はみ出し始める位置
+  let over = text.length;
+  for (let i = 1; i <= text.length; i++) {
+    if (!fitsOneLine(text.slice(0, i), w, fontSize)) { over = i - 1; break; }
+  }
+  // かっこ書きの中ではみ出すなら、かっこの直前で分ける
+  let depth = 0, openAt = -1;
+  for (let i = 0; i < over; i++) {
+    const ch = text[i];
+    if ("（(".includes(ch)) { if (depth === 0) openAt = i; depth++; }
+    else if ("）)".includes(ch) && depth > 0) { depth--; if (depth === 0) openAt = -1; }
+  }
+  let pos = -1;
+  const paren = depth > 0 && openAt > 0 && !inside(openAt);
+  if (paren) pos = openAt;
+  if (pos < 0) {
+    for (let i = over; i > 0; i--) {
+      if (inside(i)) continue;
+      const prev = text[i - 1], ch = text[i];
+      if (ch === undefined) continue;
+      if (NO_LINE_START.includes(ch)) continue;
+      if (AFTER.includes(prev) || OPEN.includes(ch)) { pos = i; break; }
+    }
+  }
+  if (pos <= 0) return [text];
+  const head = text.slice(0, pos).trimEnd(), rest = text.slice(pos).trimStart();
+  const lines = [head, ...breakHeading(rest, w, fontSize, maxLines - 1)];
+  // かっこの前で分ける場合は、1行目が短くても、行が増えても分ける（かっこ書きをまとめて読めるように）。
+  // それ以外は、1行目が短すぎる（3割未満）か、分けると行数が増える場合は分けない
+  if (!paren) {
+    const natural = Math.ceil((textEm(text) * fontSize) / 72 / w);
+    if ((textEm(head) * fontSize) / 72 < w * 0.3 || countLines(lines, w, fontSize) > natural) return [text];
+  }
+  return lines;
+}
+
+function countLines(lines, w, fontSize) {
+  return lines.reduce((n, line) => n + Math.max(1, Math.ceil((textEm(line) * fontSize) / 72 / w)), 0);
+}
+
+// 見出しが何行になるか（分けた行の中でさらに折り返す分も数える）
+function headingLines(text, w, fontSize, maxLines = 3) {
+  return countLines(breakHeading(text, w, fontSize, maxLines), w, fontSize);
+}
+
+module.exports = { measure, fitSize, fitsOneLine, textEm, breakHeading, headingLines };

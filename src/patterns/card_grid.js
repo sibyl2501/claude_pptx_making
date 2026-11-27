@@ -8,8 +8,9 @@ function render(ctx, spec, section) {
   let box = f.box;
   const plans = [];
   if (spec.panel) {
+    // パネルはカードと別に文字サイズを決める（パネルが詰まっていてもカードの文字を小さくしない）
     const pw = spec.panel.width || Math.min(3.6, box.w * 0.32);
-    plans.push(C.planPanel(ctx, f.slide, { x: box.x + box.w - pw, y: box.y, w: pw, h: box.h }, spec.panel));
+    C.renderGroup(ctx, f.rec, [C.planPanel(ctx, f.slide, { x: box.x + box.w - pw, y: box.y, w: pw, h: box.h }, spec.panel)]);
     box = { ...box, w: box.w - pw - S.GAP };
   }
   const boxes = S.gridOf(box, spec.grid || S.defaultGrid(spec.cards.length), spec.cards.length);

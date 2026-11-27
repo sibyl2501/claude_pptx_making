@@ -71,7 +71,7 @@ JSON の先頭に `"$schema": "./schema/deck.schema.json"`（パスは置き場�
 
 ## パターン（25 種）
 
-すべての通常ページに共通: `chapter`（章ラベル）、`title`（結論を言い切る見出し・1行）、`lead`（リード文・1行）、`source`（出典）、`notes`（スピーカーノート）、`conclusion`（下端の結論帯）。
+すべての通常ページに共通: `chapter`（章ラベル）、`title`（結論を示す見出し・体言止め・1行）、`lead`（リード文・1行）、`source`（出典）、`notes`（スピーカーノート）、`conclusion`（下端の結論帯）。
 
 | ID | `pattern` | 用途 | 主な項目 |
 |---|---|---|---|
@@ -110,10 +110,20 @@ JSON の先頭に `"$schema": "./schema/deck.schema.json"`（パスは置き場�
 | `**強調**` | 太字（中に数式も書ける） |
 | `==強調==` | アクセント色の太字 |
 | `[[3.0℃]]` | 主色の太字（数値の強調） |
-| `$W^{T}x + b_{i}$` | 数式フォント（Cambria）と上付き・下付き |
+| `$\\frac{1}{n}\\sum_{i} x_{i}^{2}$` | 文中の数式（TeX 記法）。PowerPoint の数式として書き出し、そのまま編集できる |
+| `$$\\nabla_{\\theta} L = X^{\\top}(\\hat{y} - y)$$` | 段落全体を1つの数式として中央に置く（`body` の1要素にこれだけを書く） |
 | 行頭 `- ` ／ `  - ` | 箇条書き ／ 2段目 |
 
 本文（`body`）は文字列の配列で書き、1要素が1段落です。
+
+### 数式（TeX 記法）
+
+`$…$` の中は TeX（LaTeX の数式記法）で書きます。JSON ではバックスラッシュを `\\` と重ねます（`"$\\frac{a}{b}$"`）。書き出した数式は PowerPoint の数式エディタで編集でき、数式を表示できない環境では同じ内容の文字列が表示されます。
+
+- 使える主な記法（TeX の表記。JSON では `\` を重ねる）：`x^{2}` `x_{i}` `f'` `\frac{a}{b}` `\sqrt{x}` `\sum_{i=1}^{n}` `\prod` `\int` `\max_{\theta}` `\exp` `\log` `\hat{y}` `\bar{x}` `\vec{v}` `\mathbf{x}` `\mathrm{d}` `\mathbb{R}` `\mathcal{F}` `\text{日本語}` `\left( … \right)` `\begin{bmatrix} a & b \\ c & d \end{bmatrix}`（`pmatrix` `vmatrix` `cases` も可）、ギリシャ文字、`\nabla` `\partial` `\cdot` `\times` `\le` `\approx` `\to` `\in` `\top` などの記号
+- 関数名は `\log` `\exp` `\max` や `\operatorname{softmax}` と書く（`log` のままだと変数 l・o・g の積として斜体になる）
+- 解釈できない数式は、`--check` でページと数式を示して警告する
+- グラフの題名・項目名には数式を置けないため、`$…$` は文字列（`f′(x)` など）に置き換えて表示する
 
 ### グラフ
 

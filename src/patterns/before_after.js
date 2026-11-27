@@ -26,7 +26,7 @@ function render(ctx, spec, section) {
   spec.rows.forEach((r, i) => {
     const b = rb[i];
     if (hasLabel) {
-      f.slide.addText(require("../markup").runsOf(r.label || "", ctx, { fontSize: 12, bold: true, color: theme.primaryDark }), { x: box.x, y: b.y, w: lw, h: b.h, margin: 0, valign: "middle", isTextBox: true, objectName: ctx.nm("ba-label") });
+      f.slide.addText(C.headRuns(ctx, r.label || "", lw, 12, { bold: true, color: theme.primaryDark }), { x: box.x, y: b.y, w: lw, h: b.h, margin: 0, valign: "middle", isTextBox: true, objectName: ctx.nm("ba-label") });
     }
     plans.push(C.planCard(ctx, f.slide, { x: bx, y: b.y, w: cw, h: b.h }, { body: r.before }, { fill: theme.neutralTint, label: `${r.label || i + 1}（現状）` }));
     plans.push(C.planCard(ctx, f.slide, { x: afx, y: b.y, w: cw, h: b.h }, { body: r.after }, { fill: theme.primaryTint, label: `${r.label || i + 1}（あるべき姿）` }));

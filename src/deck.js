@@ -31,6 +31,13 @@ function createDeck(meta) {
     slideNo: 0,
     report: [], // スライドごとの検査結果
     objN: 0,
+    math: [], // 本文の数式（目印の番号 → TeX）。書き出し後に PowerPoint の数式に置き換える
+  };
+  // 解釈できない数式は、そのページの警告にする
+  ctx.onMathError = (tex, msg) => {
+    const rec = ctx.report[ctx.report.length - 1];
+    const w = `数式「${tex.slice(0, 30)}」を解釈できません：${msg}`;
+    if (rec && !rec.warn.includes(w)) rec.warn.push(w);
   };
   ctx.nm = (s) => `${s}-${++ctx.objN}`;
   defineLayouts(ctx);
@@ -88,6 +95,7 @@ function contentSlide(ctx, spec, section) {
   let ts = tMax;
   while (ts > tMin && !fitsOneLine(spec.title, page.body.w, ts)) ts -= 1;
   if (!fitsOneLine(spec.title, page.body.w, ts)) rec.warn.push(`見出しが長く1行に収まりません（${spec.title.length}字）。短くしてください`);
+  checkTaigen(rec, spec.title, "見出し");
   slide.addText(runsOf(spec.title, ctx, { fontSize: ts, bold: true, color: theme.primaryDark }), { placeholder: "title" });
   if (spec.lead) {
     let ls = sizes.lead.size;
@@ -100,6 +108,14 @@ function contentSlide(ctx, spec, section) {
   return { slide, rec };
 }
 
+// 見出しは体言止めにする（「〜だ」「〜である」「〜です」で終えない）
+const DA_ENDING = /(だ|である|であった|だった|です|でした|ます|ました)[。．.！!]?$/;
+function checkTaigen(rec, title, label) {
+  const t = String(title || "").replace(/\*\*|==|\[\[|\]\]/g, "").trim();
+  if (DA_ENDING.test(t)) rec.warn.push(`${label}は体言止めにしてください（「…${t.slice(-8)}」→ 例：「〜だ」を除いて名詞で終える）`);
+  else if (/[。．]$/.test(t)) rec.warn.push(`${label}の末尾の句点「。」は不要です`);
+}
+
 function startRecord(ctx, spec) {
   ctx.slideNo += 1;
   const rec = { no: ctx.slideNo, pattern: spec.pattern, title: spec.title || "", areas: [], warn: [], sizes: new Set() };
@@ -107,4 +123,4 @@ function startRecord(ctx, spec) {
   return rec;
 }
 
-module.exports = { createDeck, contentSlide, startRecord };
+module.exports = { createDeck, contentSlide, startRecord, checkTaigen };

@@ -91,7 +91,7 @@ async function build(input, output, overrides = {}) {
   if (output) {
     fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
     await ctx.pres.writeFile({ fileName: output });
-    await applyThemeXml(output, ctx.theme, ctx.fonts);
+    await applyThemeXml(output, ctx.theme, ctx.fonts, ctx);
     await checkGeometry(output);
   }
   return ctx;

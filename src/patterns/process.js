@@ -21,7 +21,7 @@ function render(ctx, spec, section) {
     const tx = x + (i === 0 ? 0.14 : notch + 0.06), tw = w - notch - (i === 0 ? 0.14 : notch + 0.06);
     f.slide.addText([
       { text: `${i + 1}  `, options: { fontFace: ctx.fonts.jp, fontSize: 15, bold: true, color: em ? theme.primaryDark : theme.accent } },
-      ...runsOf(s.title, ctx, { fontSize: 12.5, bold: true, color: em ? theme.primaryDark : theme.white }),
+      ...C.headRuns(ctx, s.title, tw - 0.3, 12.5, { bold: true, color: em ? theme.primaryDark : theme.white }, 2),
     ], { x: tx, y: box.y, w: tw, h: hh, margin: 0, valign: "middle", isTextBox: true, objectName: ctx.nm("step-title") });
     // 詳細カードは矢羽根の位置に関係なく等幅・等間隔に並べる
     const cb = cardBoxes[i];
